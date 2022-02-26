@@ -16,6 +16,7 @@ class _HostPageWidgetState extends State<HostPageWidget> {
   double cardsRemember = 5;
 
   double passcodeAttempts = 3;
+  bool passcodeChanges = true;
 
   double bombExplosionSec = 45;
   bool soundOn = true;
@@ -206,6 +207,32 @@ class _HostPageWidgetState extends State<HostPageWidget> {
             ],
           ),
 
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 30),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                const Text(
+                  'Passcode Changes',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Switch(
+                  value: passcodeChanges,
+                  onChanged: (bool newValue) {
+                    setState(() {
+                      passcodeChanges = newValue;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+
           const SizedBox(height: 20),
           const Text(
             'Sound:',
@@ -281,10 +308,14 @@ class _HostPageWidgetState extends State<HostPageWidget> {
                     const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               onPressed: () {
-                log('Cards to Remember ' + passcodeAttempts.toString());
                 Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => PlaySnD(bombExplosionSec, soundOn,
-                      soundBombCountdownOn, cardsRemember, passcodeAttempts),
+                  builder: (context) => PlaySnD(
+                      bombExplosionSec,
+                      soundOn,
+                      soundBombCountdownOn,
+                      cardsRemember,
+                      passcodeAttempts,
+                      passcodeChanges),
                 ));
               },
               child: const Text('Start'),

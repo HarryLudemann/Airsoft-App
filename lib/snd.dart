@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -6,17 +7,18 @@ import 'package:flutter/services.dart';
 class PlaySnD extends StatefulWidget {
   double bombExplosionSec = 0;
   double cardsRemember = 5;
-  double allowedAttempts = 3;
-  double passPlaAttempts = 3;
-  double passDefAttempts = 3;
+  double allowedAttempts = 0;
+  double passPlaAttempts = 0;
+  double passDefAttempts = 0;
 
   bool soundOn = true;
   bool soundBombCountdownOn = true;
+  bool passcodeChanges = true;
 
   List<int> Game = [0, 5, 0, 3, 0, 2, 6, 0, 4, 1, 0, 0];
 
   PlaySnD(double bombExplosionSec, bool soundOn, bool soundBombCountdownOn,
-      double cardsRemember, double passcodeAttempts) {
+      double cardsRemember, double passcodeAttempts, bool passcodeChanges) {
     this.bombExplosionSec = bombExplosionSec;
     this.soundOn = soundOn;
     this.soundBombCountdownOn = soundBombCountdownOn;
@@ -24,6 +26,7 @@ class PlaySnD extends StatefulWidget {
     this.passPlaAttempts = passcodeAttempts;
     this.passDefAttempts = passcodeAttempts;
     this.allowedAttempts = passcodeAttempts;
+    this.passcodeChanges = passcodeChanges;
   }
 
   @override
@@ -54,11 +57,17 @@ class _PlaySnDState extends State<PlaySnD> {
       list.add(0);
     }
     list.shuffle(); // shuffle list
+    log(value.toString());
+    log(list.toString());
     return list;
   }
 
   void resetGame() {
     setState(() {
+      if (widget.passcodeChanges) {
+        // if passcode changes change passcode
+        widget.Game = _getRandomList(widget.cardsRemember.toInt());
+      }
       Answer = [];
       currState = "";
       bombPlanted = false;
@@ -77,7 +86,7 @@ class _PlaySnDState extends State<PlaySnD> {
     // if answer length is 1 less then number
     if (number == (Answer.length + 1)) {
       Answer.add(number);
-      if (number == widget.allowedAttempts.toInt()) {
+      if (number == widget.cardsRemember.toInt()) {
         if (bombPlanted) {
           // defused bomb
           currState = "Bomb Defused";
@@ -144,7 +153,7 @@ class _PlaySnDState extends State<PlaySnD> {
   }
 
   Future _getThingsOnStartup() async {
-    // widget.Game = _getRandomList(widget.allowedAttempts.toInt());
+    widget.Game = _getRandomList(widget.cardsRemember.toInt());
     // startTimer(); // start bomb timer
   }
 
