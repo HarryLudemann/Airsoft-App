@@ -60,6 +60,23 @@ class _PlaySnDState extends State<PlaySnD> {
     return list;
   }
 
+  String secondsToMinutes(double seconds) {
+    int sec = seconds.toInt();
+    // if seconds is less then 60 return seconds
+    if (seconds < 60) {
+      return seconds.toStringAsFixed(0);
+    } else {
+      int min = sec ~/ 60;
+      sec = sec % 60;
+      // if sec if less then 10 add 0 to front
+      if (sec < 10) {
+        return "$min:0$sec";
+      } else {
+        return "$min:$sec";
+      }
+    }
+  }
+
   void resetGame() {
     setState(() {
       if (widget.passcodeChanges) {
@@ -67,7 +84,6 @@ class _PlaySnDState extends State<PlaySnD> {
         widget.Game = _getRandomList(widget.cardsRemember.toInt());
       }
       Answer = [];
-      bombPlanted = false;
       hideTiles = false;
     });
   }
@@ -84,6 +100,7 @@ class _PlaySnDState extends State<PlaySnD> {
     if (number == (Answer.length + 1)) {
       Answer.add(number);
       if (number == widget.cardsRemember.toInt()) {
+        log('test');
         if (bombPlanted) {
           // defused bomb
           log('Defused Bomb');
@@ -100,6 +117,7 @@ class _PlaySnDState extends State<PlaySnD> {
             bombPlanted = true;
             currState = "Bomb Planted";
           });
+          bombPlanted = true;
         }
       } else {
         // hide tiles after 1 first press
@@ -120,7 +138,7 @@ class _PlaySnDState extends State<PlaySnD> {
       }
 
       // if bomb is planted and passDefAttempts is greater then 0 remove 1 and restart game
-      if (bombPlanted && widget.passDefAttempts > 0) {
+      else if (bombPlanted && widget.passDefAttempts > 0) {
         setState(() {
           widget.passDefAttempts--;
           resetGame();
@@ -186,7 +204,7 @@ class _PlaySnDState extends State<PlaySnD> {
                 height: 0,
               ),
               Text(
-                widget.bombExplosionSec.toStringAsFixed(0),
+                secondsToMinutes(widget.bombExplosionSec),
                 style: TextStyle(
                   color: currState == "Bomb Planted"
                       ? Colors.red
@@ -212,10 +230,7 @@ class _PlaySnDState extends State<PlaySnD> {
                           padding: EdgeInsets.all(5),
                           child: RaisedButton(
                             // if game[index] is not 0 and game[index] not in answer add 5 elevation else 0
-                            elevation: (widget.Game[index] != 0 &&
-                                    !Answer.contains(widget.Game[index]))
-                                ? 5
-                                : 0,
+                            elevation: 5,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5),
                             ),

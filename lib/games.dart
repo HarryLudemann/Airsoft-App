@@ -90,7 +90,7 @@ class _HostPageWidgetState extends State<HostPageWidget> {
               Padding(
                 padding: const EdgeInsets.only(left: 20),
                 child: Text(
-                  '${bombExplosionSec.toInt()}s',
+                  '${(bombExplosionSec / 60).toStringAsFixed(0)}m',
                   style: const TextStyle(
                     color: Colors.blue,
                     fontSize: 20,
@@ -104,11 +104,11 @@ class _HostPageWidgetState extends State<HostPageWidget> {
                 // add padding
                 child: Slider(
                   value: bombExplosionSec,
-                  min: 10,
-                  max: 300,
-                  divisions: 58,
+                  min: 60,
+                  max: 900,
+                  divisions: 14,
                   activeColor: Colors.blue,
-                  label: '${bombExplosionSec.round()}s',
+                  label: '${(bombExplosionSec / 60).toStringAsFixed(0)}m',
                   onChanged: (double newValue) {
                     setState(() {
                       bombExplosionSec = newValue;
