@@ -57,8 +57,6 @@ class _PlaySnDState extends State<PlaySnD> {
       list.add(0);
     }
     list.shuffle(); // shuffle list
-    log(value.toString());
-    log(list.toString());
     return list;
   }
 
@@ -69,7 +67,6 @@ class _PlaySnDState extends State<PlaySnD> {
         widget.Game = _getRandomList(widget.cardsRemember.toInt());
       }
       Answer = [];
-      currState = "";
       bombPlanted = false;
       hideTiles = false;
     });
@@ -89,16 +86,17 @@ class _PlaySnDState extends State<PlaySnD> {
       if (number == widget.cardsRemember.toInt()) {
         if (bombPlanted) {
           // defused bomb
-          currState = "Bomb Defused";
+          log('Defused Bomb');
           setState(() {
+            currState = "Bomb Defused";
             hideTiles = true;
+            timer?.cancel(); // stop timer
           });
-          timer?.cancel(); // stop timer
         } else {
           // planted bomb
-          startTimer();
+          resetGame();
           setState(() {
-            resetGame();
+            startTimer();
             bombPlanted = true;
             currState = "Bomb Planted";
           });
@@ -161,6 +159,12 @@ class _PlaySnDState extends State<PlaySnD> {
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays([]);
     return MaterialApp(
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: Colors.black,
+        accentColor: Colors.black,
+        backgroundColor: Colors.black,
+      ),
       home: Scaffold(
         body: Center(
           child: Column(
@@ -170,25 +174,29 @@ class _PlaySnDState extends State<PlaySnD> {
               Text(
                 currState,
                 style: TextStyle(
-                  color:
-                      currState == "Bomb Defused" ? Colors.green : Colors.red,
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                ),
+                    // change font family to poppins
+                    color:
+                        currState == "Bomb Defused" ? Colors.green : Colors.red,
+                    fontSize: 75,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'BebasNeue'),
               ),
               // add space
               const SizedBox(
-                height: 20,
+                height: 0,
               ),
               Text(
                 widget.bombExplosionSec.toStringAsFixed(0),
                 style: TextStyle(
-                    color: currState == "Bomb Planted"
-                        ? Colors.red
-                        : currState == "Bomb Defused"
-                            ? Colors.green
-                            : Colors.white,
-                    fontSize: 50),
+                  color: currState == "Bomb Planted"
+                      ? Colors.red
+                      : currState == "Bomb Defused"
+                          ? Colors.green
+                          : Colors.transparent,
+                  fontSize: 55,
+                  fontFamily: 'BebasNeue',
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               // Game Squares
               // grid view of square buttons
@@ -212,7 +220,7 @@ class _PlaySnDState extends State<PlaySnD> {
                               borderRadius: BorderRadius.circular(5),
                             ),
                             color: (widget.Game[index] == 0 || hideTiles)
-                                ? Colors.white
+                                ? Colors.transparent
                                 : Colors.blue,
                             onPressed: () {
                               addToAnswer(widget.Game[index]);
@@ -221,8 +229,12 @@ class _PlaySnDState extends State<PlaySnD> {
                               widget.Game[index] == 0
                                   ? ''
                                   : widget.Game[index].toString(),
-                              style: const TextStyle(
-                                  fontSize: 50, color: Colors.white),
+                              style: TextStyle(
+                                  fontSize: 50,
+                                  // color white unless hidetiles then transparent
+                                  color: hideTiles
+                                      ? Colors.transparent
+                                      : Colors.white),
                             ),
                           ));
                     },
@@ -237,10 +249,11 @@ class _PlaySnDState extends State<PlaySnD> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           primary: Colors.blue,
-                          minimumSize: const Size.fromHeight(100), // NEW
+                          minimumSize: const Size.fromHeight(80), // NEW
                         ),
                         onPressed: () {
                           Navigator.pop(context);
+                          timer?.cancel();
                         },
                         child: const Text(
                           "Back",

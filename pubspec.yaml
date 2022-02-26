@@ -1,5 +1,5 @@
-name: testapp
-description: A new Flutter project.
+name: Airsoft
+description: App to simulate call of duty's search in destroy gamemode into a airsoft/paintball game.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -27,6 +27,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  flutter_launcher_icons: "^0.9.2"
   flutter:
     sdk: flutter
 
@@ -51,11 +52,22 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+  fonts:
+    - family: BebasNeue
+      fonts:
+        - asset: fonts/BebasNeue-Regular.ttf
+          weight: 400
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/PaintballIcon.png"
 
   # To add assets to your application, add an assets section, like this:
   # assets:
