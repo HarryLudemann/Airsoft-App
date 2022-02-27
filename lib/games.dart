@@ -1,7 +1,5 @@
-import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'snd.dart';
-import 'dart:developer';
 
 class HostPageWidget extends StatefulWidget {
   HostPageWidget({Key? key}) : super(key: key);
@@ -18,9 +16,27 @@ class _HostPageWidgetState extends State<HostPageWidget> {
   double passcodeAttempts = 3;
   bool passcodeChanges = true;
 
-  double bombExplosionSec = 45;
+  double bombExplosionSec = 60;
   bool soundOn = true;
   bool soundBombCountdownOn = true;
+  double waitSeconds = 15; // game starts in
+
+  String secondsToMinutes(double seconds) {
+    int sec = seconds.toInt();
+    // if seconds is less then 60 return seconds
+    if (seconds < 60) {
+      return seconds.toStringAsFixed(0) + 's';
+    } else {
+      int min = sec ~/ 60;
+      sec = sec % 60;
+      // if sec if less then 10 add 0 to front
+      if (sec < 10) {
+        return "$min:0$sec";
+      } else {
+        return "$min:$sec";
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,42 +55,7 @@ class _HostPageWidgetState extends State<HostPageWidget> {
       ),
       body: Column(
         children: <Widget>[
-          // const SizedBox(height: 40),
-          // // Select Game Text
-          // const Text(
-          //   'Select Game:',
-          //   style: TextStyle(
-          //     fontSize: 20,
-          //     fontWeight: FontWeight.bold,
-          //   ),
-          // ),
-          // // Games Dropdown
-          // // add padding 5 to each side
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 10),
-          //   child: DropdownButtonFormField<String>(
-          //     decoration:
-          //         const InputDecoration(enabledBorder: InputBorder.none),
-          //     value: dropdownValue,
-          //     elevation: 0,
-          //     style: const TextStyle(
-          //       color: Colors.blue,
-          //       fontSize: 18.0,
-          //     ),
-          //     onChanged: (String? newValue) {
-          //       dropdownValue = newValue!;
-          //     },
-          //     items: <String>['Search and Destroy']
-          //         .map<DropdownMenuItem<String>>((String value) {
-          //       return DropdownMenuItem<String>(
-          //         value: value,
-          //         child: Text(value),
-          //       );
-          //     }).toList(),
-          //   ),
-          // ),
-
-          const SizedBox(height: 40),
+          const SizedBox(height: 20),
           // Select Game Text
           const Text(
             'Bomb Explosion:',
@@ -119,7 +100,7 @@ class _HostPageWidgetState extends State<HostPageWidget> {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           const Text(
             'Cards to Remember:',
             style: TextStyle(
@@ -163,7 +144,7 @@ class _HostPageWidgetState extends State<HostPageWidget> {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           const Text(
             'Plant/Defuse Attempts:',
             style: TextStyle(
@@ -208,6 +189,50 @@ class _HostPageWidgetState extends State<HostPageWidget> {
           ),
 
           const SizedBox(height: 10),
+          const Text(
+            'Wait Screen Time:',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          // Number of attempts Slider
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: Text(
+                  '${secondsToMinutes(waitSeconds)}',
+                  style: const TextStyle(
+                    color: Colors.blue,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              // set slider width to fill row
+              Expanded(
+                // add padding
+                child: Slider(
+                  value: waitSeconds,
+                  min: 0,
+                  max: 300,
+                  divisions: 20,
+                  activeColor: Colors.blue,
+                  label: '${secondsToMinutes(waitSeconds)}',
+                  onChanged: (double newValue) {
+                    setState(() {
+                      waitSeconds = newValue;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 5),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Row(
@@ -233,7 +258,7 @@ class _HostPageWidgetState extends State<HostPageWidget> {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           const Text(
             'Sound:',
             style: TextStyle(
@@ -242,7 +267,7 @@ class _HostPageWidgetState extends State<HostPageWidget> {
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Row(
@@ -261,6 +286,9 @@ class _HostPageWidgetState extends State<HostPageWidget> {
                   onChanged: (bool newValue) {
                     setState(() {
                       soundOn = newValue;
+                      if (!newValue) {
+                        soundBombCountdownOn = false;
+                      }
                     });
                   },
                 ),
@@ -268,7 +296,7 @@ class _HostPageWidgetState extends State<HostPageWidget> {
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Row(
@@ -287,6 +315,9 @@ class _HostPageWidgetState extends State<HostPageWidget> {
                   onChanged: (bool newValue) {
                     setState(() {
                       soundBombCountdownOn = newValue;
+                      if (newValue) {
+                        soundOn = true;
+                      }
                     });
                   },
                 ),
@@ -295,30 +326,33 @@ class _HostPageWidgetState extends State<HostPageWidget> {
           ),
 
           const SizedBox(height: 20),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: ElevatedButton(
-              style: TextButton.styleFrom(
-                primary: Colors.white,
-                minimumSize: const Size.fromHeight(50),
-                backgroundColor: Colors.blue,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 50, vertical: 30),
-                textStyle:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: ElevatedButton(
+                style: TextButton.styleFrom(
+                  primary: Colors.white,
+                  minimumSize: const Size.fromHeight(50),
+                  backgroundColor: Colors.blue,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 50, vertical: 30),
+                  textStyle: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => PlaySnD(
+                        bombExplosionSec,
+                        soundOn,
+                        soundBombCountdownOn,
+                        cardsRemember,
+                        passcodeAttempts,
+                        passcodeChanges,
+                        waitSeconds),
+                  ));
+                },
+                child: const Text('Start'),
               ),
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => PlaySnD(
-                      bombExplosionSec,
-                      soundOn,
-                      soundBombCountdownOn,
-                      cardsRemember,
-                      passcodeAttempts,
-                      passcodeChanges),
-                ));
-              },
-              child: const Text('Start'),
             ),
           ),
         ],
@@ -327,64 +361,64 @@ class _HostPageWidgetState extends State<HostPageWidget> {
   }
 }
 
-class JoinPageWidget extends StatelessWidget {
-  const JoinPageWidget({Key? key}) : super(key: key);
+// class JoinPageWidget extends StatelessWidget {
+//   const JoinPageWidget({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          color: Colors.black,
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-      // add text field to center page and button to bottom
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-              child: TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                  hintText: 'Enter game code',
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 5,
-                top: 2,
-                right: 5,
-                bottom: 2,
-              ),
-              child: ElevatedButton(
-                style: TextButton.styleFrom(
-                  primary: Colors.white,
-                  backgroundColor: Colors.blue,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 30),
-                  textStyle: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () {},
-                child: const Text('Join'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       appBar: AppBar(
+//         backgroundColor: Colors.white,
+//         elevation: 0,
+//         leading: IconButton(
+//           icon: Icon(Icons.arrow_back),
+//           color: Colors.black,
+//           onPressed: () {
+//             Navigator.pop(context);
+//           },
+//         ),
+//       ),
+//       // add text field to center page and button to bottom
+//       body: Center(
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.stretch,
+//           mainAxisSize: MainAxisSize.min,
+//           children: <Widget>[
+//             const Padding(
+//               padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+//               child: TextField(
+//                 decoration: InputDecoration(
+//                   border: OutlineInputBorder(
+//                     borderSide: BorderSide(color: Colors.blue),
+//                   ),
+//                   hintText: 'Enter game code',
+//                 ),
+//               ),
+//             ),
+//             Padding(
+//               padding: const EdgeInsets.only(
+//                 left: 5,
+//                 top: 2,
+//                 right: 5,
+//                 bottom: 2,
+//               ),
+//               child: ElevatedButton(
+//                 style: TextButton.styleFrom(
+//                   primary: Colors.white,
+//                   backgroundColor: Colors.blue,
+//                   padding:
+//                       const EdgeInsets.symmetric(horizontal: 50, vertical: 30),
+//                   textStyle: const TextStyle(
+//                       fontSize: 20, fontWeight: FontWeight.bold),
+//                 ),
+//                 onPressed: () {},
+//                 child: const Text('Join'),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
