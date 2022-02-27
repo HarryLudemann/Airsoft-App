@@ -9,17 +9,21 @@ class HostPageWidget extends StatefulWidget {
 }
 
 class _HostPageWidgetState extends State<HostPageWidget> {
-  String dropdownValue = 'Search and Destroy';
+  late double spacing = 0;
+
+  String dropdownValue = 'Easy';
 
   double cardsRemember = 5;
 
   double passcodeAttempts = 3;
   bool passcodeChanges = true;
 
-  double bombExplosionSec = 60;
+  double bombExplosionSec = 300;
   bool soundOn = true;
   bool soundBombCountdownOn = true;
   double waitSeconds = 15; // game starts in
+
+  bool _expanded = false;
 
   String secondsToMinutes(double seconds) {
     int sec = seconds.toInt();
@@ -55,275 +59,371 @@ class _HostPageWidgetState extends State<HostPageWidget> {
       ),
       body: Column(
         children: <Widget>[
-          const SizedBox(height: 20),
-          // Select Game Text
-          const Text(
-            'Bomb Explosion:',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          // Bomb Explosion Slider
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(left: 20),
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(left: 10),
                 child: Text(
-                  '${(bombExplosionSec / 60).toStringAsFixed(0)}m',
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              // set slider width to fill row
-              Expanded(
-                // add padding
-                child: Slider(
-                  value: bombExplosionSec,
-                  min: 60,
-                  max: 900,
-                  divisions: 14,
-                  activeColor: Colors.blue,
-                  label: '${(bombExplosionSec / 60).toStringAsFixed(0)}m',
-                  onChanged: (double newValue) {
-                    setState(() {
-                      bombExplosionSec = newValue;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-          const Text(
-            'Cards to Remember:',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          // Number of cards Slider
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: Text(
-                  '${cardsRemember.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              // set slider width to fill row
-              Expanded(
-                // add padding
-                child: Slider(
-                  value: cardsRemember,
-                  min: 2,
-                  max: 12,
-                  divisions: 10,
-                  activeColor: Colors.blue,
-                  label: '${cardsRemember.round()}',
-                  onChanged: (double newValue) {
-                    setState(() {
-                      cardsRemember = newValue;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-          const Text(
-            'Plant/Defuse Attempts:',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          // Number of attempts Slider
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: Text(
-                  '${passcodeAttempts.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              // set slider width to fill row
-              Expanded(
-                // add padding
-                child: Slider(
-                  value: passcodeAttempts,
-                  min: 1,
-                  max: 10,
-                  divisions: 10,
-                  activeColor: Colors.blue,
-                  label: '${passcodeAttempts.round()}',
-                  onChanged: (double newValue) {
-                    setState(() {
-                      passcodeAttempts = newValue;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-          const Text(
-            'Wait Screen Time:',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          // Number of attempts Slider
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: Text(
-                  '${secondsToMinutes(waitSeconds)}',
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              // set slider width to fill row
-              Expanded(
-                // add padding
-                child: Slider(
-                  value: waitSeconds,
-                  min: 0,
-                  max: 300,
-                  divisions: 20,
-                  activeColor: Colors.blue,
-                  label: '${secondsToMinutes(waitSeconds)}',
-                  onChanged: (double newValue) {
-                    setState(() {
-                      waitSeconds = newValue;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 5),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                const Text(
-                  'Passcode Changes',
+                  'Difficulty:',
                   style: TextStyle(
-                    color: Colors.blue,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Switch(
-                  value: passcodeChanges,
-                  onChanged: (bool newValue) {
-                    setState(() {
-                      passcodeChanges = newValue;
-                    });
+              ),
+              Expanded(
+                child: Padding(
+                  // add padding to left right
+                  padding: const EdgeInsets.only(left: 20, right: 20, top: 3),
+                  child: DropdownButton<String>(
+                    value: dropdownValue,
+                    elevation: 16,
+                    style: const TextStyle(color: Colors.blue, fontSize: 20),
+                    underline: Container(
+                      height: 0,
+                      color: Colors.transparent,
+                    ),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        dropdownValue = newValue!;
+                        if (newValue == 'Easy') {
+                          cardsRemember = 5;
+                          passcodeAttempts = 10;
+                          bombExplosionSec = 900;
+                          passcodeChanges = false;
+                        } else if (newValue == 'Medium') {
+                          cardsRemember = 8;
+                          passcodeAttempts = 3;
+                          bombExplosionSec = 600;
+                          passcodeChanges = true;
+                        } else if (newValue == 'Hard') {
+                          cardsRemember = 12;
+                          passcodeAttempts = 2;
+                          bombExplosionSec = 300;
+                          passcodeChanges = true;
+                        }
+                      });
+                    },
+                    items: <String>['Easy', 'Medium', 'Hard']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // create simple expansion panel
+          Container(
+            color: Colors.green,
+            child: ExpansionPanelList(
+              animationDuration: Duration(milliseconds: 2000),
+              children: [
+                ExpansionPanel(
+                  headerBuilder: (context, isExpanded) {
+                    return const ListTile(
+                      title: Text(
+                        'Customize Settings',
+                        style: TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.bold),
+                      ),
+                    );
                   },
+                  body: Column(children: <Widget>[
+                    SizedBox(height: spacing),
+                    // Select Game Text
+                    const Text(
+                      'Bomb Explosion:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    // Bomb Explosion Slider
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: Text(
+                            '${(bombExplosionSec / 60).toStringAsFixed(0)}m',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+
+                        // set slider width to fill row
+                        Expanded(
+                          // add padding
+                          child: Slider(
+                            value: bombExplosionSec,
+                            min: 60,
+                            max: 900,
+                            divisions: 14,
+                            activeColor: Colors.blue,
+                            label:
+                                '${(bombExplosionSec / 60).toStringAsFixed(0)}m',
+                            onChanged: (double newValue) {
+                              setState(() {
+                                bombExplosionSec = newValue;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: spacing),
+                    const Text(
+                      'Cards to Remember:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    // Number of cards Slider
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: Text(
+                            '${cardsRemember.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+
+                        // set slider width to fill row
+                        Expanded(
+                          // add padding
+                          child: Slider(
+                            value: cardsRemember,
+                            min: 2,
+                            max: 12,
+                            divisions: 10,
+                            activeColor: Colors.blue,
+                            label: '${cardsRemember.round()}',
+                            onChanged: (double newValue) {
+                              setState(() {
+                                cardsRemember = newValue;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: spacing),
+                    const Text(
+                      'Plant/Defuse Attempts:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    // Number of attempts Slider
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: Text(
+                            '${passcodeAttempts.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+
+                        // set slider width to fill row
+                        Expanded(
+                          // add padding
+                          child: Slider(
+                            value: passcodeAttempts,
+                            min: 1,
+                            max: 10,
+                            divisions: 10,
+                            activeColor: Colors.blue,
+                            label: '${passcodeAttempts.round()}',
+                            onChanged: (double newValue) {
+                              setState(() {
+                                passcodeAttempts = newValue;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: spacing),
+                    const Text(
+                      'Wait Screen Time:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    // Number of attempts Slider
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: Text(
+                            '${secondsToMinutes(waitSeconds)}',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+
+                        // set slider width to fill row
+                        Expanded(
+                          // add padding
+                          child: Slider(
+                            value: waitSeconds,
+                            min: 0,
+                            max: 300,
+                            divisions: 20,
+                            activeColor: Colors.blue,
+                            label: '${secondsToMinutes(waitSeconds)}',
+                            onChanged: (double newValue) {
+                              setState(() {
+                                waitSeconds = newValue;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: spacing),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 30),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const Text(
+                            'Passcode Changes',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Switch(
+                            value: passcodeChanges,
+                            onChanged: (bool newValue) {
+                              setState(() {
+                                passcodeChanges = newValue;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: spacing),
+                    const Text(
+                      'Sound:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    SizedBox(height: spacing),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 30),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const Text(
+                            'Sound',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Switch(
+                            value: soundOn,
+                            onChanged: (bool newValue) {
+                              setState(() {
+                                soundOn = newValue;
+                                if (!newValue) {
+                                  soundBombCountdownOn = false;
+                                }
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: spacing),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 30),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const Text(
+                            'Bomb Countdown',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Switch(
+                            value: soundBombCountdownOn,
+                            onChanged: (bool newValue) {
+                              setState(() {
+                                soundBombCountdownOn = newValue;
+                                if (newValue) {
+                                  soundOn = true;
+                                }
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                  isExpanded: _expanded,
+                  canTapOnHeader: true,
                 ),
               ],
+              dividerColor: Colors.grey,
+              expansionCallback: (panelIndex, isExpanded) {
+                _expanded = !_expanded;
+                setState(() {});
+              },
             ),
           ),
 
-          const SizedBox(height: 10),
-          const Text(
-            'Sound:',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 5),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                const Text(
-                  'Sound',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Switch(
-                  value: soundOn,
-                  onChanged: (bool newValue) {
-                    setState(() {
-                      soundOn = newValue;
-                      if (!newValue) {
-                        soundBombCountdownOn = false;
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 5),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                const Text(
-                  'Bomb Countdown',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Switch(
-                  value: soundBombCountdownOn,
-                  onChanged: (bool newValue) {
-                    setState(() {
-                      soundBombCountdownOn = newValue;
-                      if (newValue) {
-                        soundOn = true;
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
+          // add divider
+          // const Padding(
+          //   padding: EdgeInsets.only(left: 10, right: 10),
+          //   child: Divider(
+          //     color: Colors.black26,
+          //     thickness: 1,
+          //   ),
+          // ),
 
           const SizedBox(height: 20),
           Expanded(

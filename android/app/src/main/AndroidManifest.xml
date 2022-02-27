@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.testapp">
    <application
-        android:label="AirsoftSnd"
+        android:label="SnD Bomb"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

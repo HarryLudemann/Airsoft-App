@@ -223,8 +223,14 @@ class _PlaySnDState extends State<PlaySnD> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays([]);
-    if (widget.waitSeconds == 5) {
-      PlayMusic('321go');
+    if (widget.waitSeconds == 3 && widget.soundBombCountdownOn) {
+      PlayMusic('3');
+    } else if (widget.waitSeconds == 2 && widget.soundBombCountdownOn) {
+      PlayMusic('2');
+    } else if (widget.waitSeconds == 1 && widget.soundBombCountdownOn) {
+      PlayMusic('1');
+    } else if (widget.waitSeconds == 1 && widget.soundBombCountdownOn) {
+      PlayMusic('go');
     }
     // if waitSeconds is 0 show game else show empty material app
     if (widget.waitSeconds == 0) {
@@ -256,19 +262,76 @@ class _PlaySnDState extends State<PlaySnD> {
                 const SizedBox(
                   height: 0,
                 ),
-                Text(
-                  secondsToMinutes(widget.bombExplosionSec),
-                  style: TextStyle(
-                    color: currState == "Bomb Planted"
-                        ? Colors.red
-                        : currState == "Bomb Defused"
-                            ? Colors.green
-                            : Colors.transparent,
-                    fontSize: 55,
-                    fontFamily: 'BebasNeue',
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 70.0),
+                        child: Text(secondsToMinutes(widget.bombExplosionSec),
+                            style: TextStyle(
+                              color: currState == "Bomb Planted"
+                                  ? Colors.red
+                                  : currState == "Bomb Defused"
+                                      ? Colors.green
+                                      : Colors.transparent,
+                              fontSize: 55,
+                              fontFamily: 'BebasNeue',
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center),
+                      ),
+                    ),
+                    // add help icon
+                    Padding(
+                      padding: const EdgeInsets.only(right: 20.0),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.help_outline_sharp,
+                          size: 40,
+                          color: Color.fromARGB(255, 95, 95, 95),
+                        ),
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text(
+                                    "Help",
+                                    style: TextStyle(
+                                        fontFamily: 'BebasNeue',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 30),
+                                  ),
+                                  content: const Text(
+                                    "1. Plant/Defuse bomb by completing keycode.\n\n2. Finish keycode by selecting numbers in ascending order.\n\n3. Numbers disappear after first tile is selected.\n\n",
+                                    style: TextStyle(
+                                        fontFamily: 'BebasNeue',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 25),
+                                  ),
+                                  actions: <Widget>[
+                                    FlatButton(
+                                      child: const Text(
+                                        "Close",
+                                        style: TextStyle(
+                                            fontFamily: 'BebasNeue',
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
+
                 // Game Squares
                 // grid view of square buttons
                 // if currState does not equal 'Bomb Defused' show grid
