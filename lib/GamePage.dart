@@ -5,7 +5,7 @@ import 'package:flame/input.dart';
 import 'package:flame_audio/flame_audio.dart';
 
 // create stateless widget
-class PlaySnD extends StatefulWidget {
+class GamePage extends StatefulWidget {
   double bombExplosionSec = 0;
   double cardsRemember = 5;
   double allowedAttempts = 0;
@@ -19,7 +19,7 @@ class PlaySnD extends StatefulWidget {
 
   List<int> Game = [0, 5, 0, 3, 0, 2, 6, 0, 4, 1, 0, 0];
 
-  PlaySnD(
+  GamePage(
       double bombExplosionSec,
       bool soundOn,
       bool soundBombCountdownOn,
@@ -39,10 +39,10 @@ class PlaySnD extends StatefulWidget {
   }
 
   @override
-  State<PlaySnD> createState() => _PlaySnDState();
+  State<GamePage> createState() => _GamePageState();
 }
 
-class _PlaySnDState extends State<PlaySnD> {
+class _GamePageState extends State<GamePage> {
   Timer? bombTimer;
   List<int> Answer = [];
   bool hideTiles = false;

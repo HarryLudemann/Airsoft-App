@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'snd.dart';
+import 'GamePage.dart';
 
-class HostPageWidget extends StatefulWidget {
-  HostPageWidget({Key? key}) : super(key: key);
+class SettingPage extends StatefulWidget {
+  SettingPage({Key? key}) : super(key: key);
 
   @override
-  State<HostPageWidget> createState() => _HostPageWidgetState();
+  State<SettingPage> createState() => _SettingPageState();
 }
 
-class _HostPageWidgetState extends State<HostPageWidget> {
+class _SettingPageState extends State<SettingPage> {
   late double spacing = 0;
 
   String dropdownValue = 'Easy';
@@ -441,7 +441,7 @@ class _HostPageWidgetState extends State<HostPageWidget> {
                 ),
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => PlaySnD(
+                    builder: (context) => GamePage(
                         bombExplosionSec,
                         soundOn,
                         soundBombCountdownOn,
