@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 // create stateless widget for help page
-class HomePage extends StatefulWidget {
+class InstructionPage extends StatefulWidget {
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<InstructionPage> createState() => _InstructionPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _InstructionPageState extends State<InstructionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
