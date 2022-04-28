@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "868331260296",
+    "firebase_url": "https://airsoft-app-510a4-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "airsoft-app-510a4",
+    "storage_bucket": "airsoft-app-510a4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:868331260296:android:48955a7d00b96bca4a923d",
+        "android_client_info": {
+          "package_name": "com.example.nguha"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "868331260296-kg1j3ra1u09qu1k2r7loccerob9dgbqd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYB0zta7JNtr6NFq7Ch6cPfP3kHEkS8P8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "868331260296-kg1j3ra1u09qu1k2r7loccerob9dgbqd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:868331260296:android:f73811f8f82a65b24a923d",
+        "android_client_info": {
+          "package_name": "com.hazzahs.nguha"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "868331260296-kg1j3ra1u09qu1k2r7loccerob9dgbqd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYB0zta7JNtr6NFq7Ch6cPfP3kHEkS8P8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "868331260296-kg1j3ra1u09qu1k2r7loccerob9dgbqd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
