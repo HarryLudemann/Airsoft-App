@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:Nguha/util/languages.dart';
 import 'package:provider/provider.dart';
-import 'package:Nguha/util/preference_model.dart';
+import 'package:Nguha/util/settings/preference_model.dart';
 
 Widget HelpWidget(context) {
   return Consumer<PreferenceModel>(
@@ -17,10 +16,10 @@ Widget HelpWidget(context) {
               [
                 Text(
                   translate('Games', themeNotifier.language),
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white),
+                      color: themeNotifier.fontcolor),
                 ),
               ],
             ),
@@ -37,7 +36,7 @@ Widget HelpWidget(context) {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(8),
                   alignment: Alignment.topLeft,
-                  primary: Theme.of(context).primaryColor, // NEW
+                  primary: themeNotifier.primaryColor, // NEW
                 ),
                 // padding: const EdgeInsets.all(8),
                 onPressed: () {
@@ -55,13 +54,15 @@ Widget HelpWidget(context) {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(8),
                   alignment: Alignment.topLeft,
-                  primary: Theme.of(context).primaryColor, // NEW
+                  primary: themeNotifier.primaryColor, // NEW
                 ),
                 // padding: const EdgeInsets.all(8),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/DomHelp');
+                  // Navigator.pushNamed(context, '/DomHelp');
                 },
-                child: Text(translate("Domination", themeNotifier.language),
+                child: Text(
+                    translate(
+                        "Domination (Coming Soon)", themeNotifier.language),
                     style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -78,10 +79,10 @@ Widget HelpWidget(context) {
               [
                 Text(
                   translate('Help', themeNotifier.language),
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white),
+                      color: themeNotifier.fontcolor),
                 ),
               ],
             ),
@@ -98,7 +99,7 @@ Widget HelpWidget(context) {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(8),
                   alignment: Alignment.topLeft,
-                  primary: Theme.of(context).primaryColor, // NEW
+                  primary: themeNotifier.primaryColor, // NEW
                 ),
                 // padding: const EdgeInsets.all(8),
                 onPressed: () {
@@ -116,7 +117,7 @@ Widget HelpWidget(context) {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(8),
                   alignment: Alignment.topLeft,
-                  primary: Theme.of(context).primaryColor, // NEW
+                  primary: themeNotifier.primaryColor, // NEW
                 ),
                 // padding: const EdgeInsets.all(8),
                 onPressed: () {

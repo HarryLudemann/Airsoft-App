@@ -12,7 +12,7 @@ import 'package:Nguha/help/HostGameHelpPage.dart';
 // home page
 import 'package:Nguha/home/HomePage.dart';
 // import theme model and theme preferences
-import 'package:Nguha/util/preference_model.dart';
+import 'package:Nguha/util/settings/preference_model.dart';
 // import host/join game page
 import 'package:Nguha/host/HostPage.dart';
 import 'package:Nguha/join/JoinPage.dart';
@@ -36,13 +36,16 @@ class MyApp extends StatelessWidget {
           builder: (context, PreferenceModel themeNotifier, child) {
         return MaterialApp(
           theme: ThemeData(
-            backgroundColor: const Color.fromARGB(255, 32, 32, 32),
+            cardColor: themeNotifier.fontcolor,
+            backgroundColor: themeNotifier.backgroundColor,
             primaryColor: themeNotifier.primaryColor,
             bottomNavigationBarTheme: BottomNavigationBarThemeData(
-              backgroundColor: themeNotifier.primaryColor,
-              elevation: 0,
-              selectedItemColor: Colors.white,
-              unselectedItemColor: Colors.white,
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              elevation: 18,
+              backgroundColor: themeNotifier.backgroundColor,
+              selectedItemColor: themeNotifier.primaryColor,
+              unselectedItemColor: const Color.fromARGB(255, 174, 174, 174),
             ),
           ),
           initialRoute: '/',
@@ -63,7 +66,7 @@ class MyApp extends StatelessWidget {
                 },
               );
             },
-            '/HostGame': (context) => const HostPage(),
+            '/HostGame': (context) => HostPage(name: themeNotifier.username),
             '/JoinGame': (context) => const JoinPage(),
             '/SndHelp': (context) => const SndHelpPage(),
             '/DomHelp': (context) => const DomHelpPage(),

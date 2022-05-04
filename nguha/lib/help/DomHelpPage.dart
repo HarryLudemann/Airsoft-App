@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:Nguha/util/languages.dart';
 import 'package:provider/provider.dart';
-import 'package:Nguha/util/preference_model.dart';
+import 'package:Nguha/util/languages.dart';
+import 'package:Nguha/util/settings/preference_model.dart';
 
 class DomHelpPage extends StatelessWidget {
   const DomHelpPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor = const Color.fromARGB(255, 32, 32, 32);
-
     return Consumer<PreferenceModel>(
         builder: (context, PreferenceModel themeNotifier, child) {
       return Scaffold(
-        backgroundColor: backgroundColor,
+        backgroundColor: themeNotifier.backgroundColor,
         body: CustomScrollView(
           primary: false,
           slivers: <Widget>[
@@ -25,10 +22,10 @@ class DomHelpPage extends StatelessWidget {
                   [
                     Text(
                       translate('Domination', themeNotifier.language),
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white),
+                          color: themeNotifier.fontcolor),
                     ),
                   ],
                 ),
@@ -44,7 +41,7 @@ class DomHelpPage extends StatelessWidget {
                       height: 80,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Theme.of(context).primaryColor,
+                          primary: themeNotifier.primaryColor,
                           // borderRadius: BorderRadius.circular(10),
                           // borderSide: BorderSide(color: Colors.white),
                         ),

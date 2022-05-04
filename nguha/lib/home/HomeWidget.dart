@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:Nguha/util/languages.dart';
 
 import 'package:provider/provider.dart';
-import 'package:Nguha/util/preference_model.dart';
+import 'package:Nguha/util/settings/preference_model.dart';
 
 // Create home widget given context
 Widget HomeWidget(context) {
@@ -24,7 +23,7 @@ Widget HomeWidget(context) {
             },
             child: Text(
               translate('Join', themeNotifier.language),
-              style: const TextStyle(fontSize: 24),
+              style: const TextStyle(fontSize: 24, color: Colors.white),
             ),
           ),
           const SizedBox(height: 20),
@@ -38,7 +37,7 @@ Widget HomeWidget(context) {
             },
             child: Text(
               translate('Host', themeNotifier.language),
-              style: const TextStyle(fontSize: 24),
+              style: const TextStyle(fontSize: 24, color: Colors.white),
             ),
           ),
         ],

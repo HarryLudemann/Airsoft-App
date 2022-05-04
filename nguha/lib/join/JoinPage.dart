@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 import 'package:Nguha/join/Joined.dart';
 import 'package:Nguha/util/languages.dart';
-import 'package:provider/provider.dart';
-import 'package:Nguha/util/preference_model.dart';
+import 'package:Nguha/util/settings/preference_model.dart';
 
 class JoinPage extends StatefulWidget {
   const JoinPage({Key? key}) : super(key: key);
@@ -15,7 +14,7 @@ class JoinPage extends StatefulWidget {
 class _JoinPageState extends State<JoinPage> {
   String code = "";
 
-  void addToCode(String text) {
+  void _addToCode(String text) {
     if (code.length < 6) {
       setState(() {
         code += text;
@@ -23,7 +22,7 @@ class _JoinPageState extends State<JoinPage> {
     }
   }
 
-  void backspaceCode() {
+  void _backspaceCode() {
     if (code.isNotEmpty) {
       setState(() {
         code = code.substring(0, code.length - 1);
@@ -38,17 +37,6 @@ class _JoinPageState extends State<JoinPage> {
         builder: (context, PreferenceModel themeNotifier, child) {
       return Scaffold(
           backgroundColor: Theme.of(context).backgroundColor,
-          // appBar: AppBar(
-          //   backgroundColor: Colors.transparent,
-          //   elevation: 0,
-          //   leading: IconButton(
-          //     icon: const Icon(Icons.arrow_back),
-          //     color: Colors.white,
-          //     onPressed: () {
-          //       Navigator.pop(context);
-          //     },
-          //   ),
-          // ),
           body: Container(
             child: Column(
               children: [
@@ -57,10 +45,10 @@ class _JoinPageState extends State<JoinPage> {
                   code == ""
                       ? translate("Enter code", themeNotifier.language)
                       : code,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: themeNotifier.fontcolor,
                   ),
                 ),
                 SizedBox(
@@ -80,7 +68,7 @@ class _JoinPageState extends State<JoinPage> {
                           child: Text(i.toString(),
                               style: const TextStyle(fontSize: 36)),
                           onPressed: () {
-                            addToCode(i.toString());
+                            _addToCode(i.toString());
                           },
                         ),
                       ElevatedButton(
@@ -96,7 +84,7 @@ class _JoinPageState extends State<JoinPage> {
                         ),
                         child: const Text("9", style: TextStyle(fontSize: 36)),
                         onPressed: () {
-                          addToCode("9");
+                          _addToCode("9");
                         },
                       ),
                       ElevatedButton(
@@ -106,7 +94,7 @@ class _JoinPageState extends State<JoinPage> {
                         child: const Icon(Icons.backspace,
                             color: Colors.white, size: 36),
                         onPressed: () {
-                          backspaceCode();
+                          _backspaceCode();
                         },
                       ),
                     ],
@@ -124,8 +112,10 @@ class _JoinPageState extends State<JoinPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              JoinedPage(code: code, key: Key(code)),
+                          builder: (context) => JoinedPage(
+                              code: code,
+                              key: Key(code),
+                              name: themeNotifier.username),
                         ),
                       );
                     },

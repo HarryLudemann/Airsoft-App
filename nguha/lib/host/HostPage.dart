@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:Nguha/host/SettingPage.dart';
 
 class HostPage extends StatefulWidget {
-  const HostPage({Key? key}) : super(key: key);
+  String name = "";
+  HostPage({Key? key, required String name}) : super(key: key) {
+    this.name = name;
+  }
 
   @override
   State<HostPage> createState() => _HostPageState();
@@ -15,7 +18,7 @@ class _HostPageState extends State<HostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).backgroundColor,
-      body: SettingPage(),
+      body: SettingPage(name: widget.name),
     );
   }
 }

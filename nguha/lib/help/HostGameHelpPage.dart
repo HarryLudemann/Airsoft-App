@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:Nguha/util/languages.dart';
 import 'package:provider/provider.dart';
-import 'package:Nguha/util/preference_model.dart';
+import 'package:Nguha/util/languages.dart';
+import 'package:Nguha/util/settings/preference_model.dart';
 
 class HostGameHelpPage extends StatelessWidget {
   const HostGameHelpPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor = const Color.fromARGB(255, 32, 32, 32);
-
     return Consumer<PreferenceModel>(
         builder: (context, PreferenceModel themeNotifier, child) {
       return Scaffold(
-        backgroundColor: backgroundColor,
+        backgroundColor: themeNotifier.backgroundColor,
         body: CustomScrollView(
           primary: false,
           slivers: <Widget>[
@@ -25,11 +22,41 @@ class HostGameHelpPage extends StatelessWidget {
                   [
                     Text(
                       translate('How to Host Game', themeNotifier.language),
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white),
+                          color: themeNotifier.fontcolor),
                     ),
+                  ],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate(
+                  [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                              "To host a game, select the game and settings, share game code and press start to begin.",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: themeNotifier.fontcolor)),
+                        ),
+                        Container(
+                          height: 250,
+                          width: 150,
+                          decoration: const BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/Host.jpg'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
                   ],
                 ),
               ),
@@ -44,7 +71,7 @@ class HostGameHelpPage extends StatelessWidget {
                       height: 80,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Theme.of(context).primaryColor,
+                          primary: themeNotifier.primaryColor,
                           // borderRadius: BorderRadius.circular(10),
                           // borderSide: BorderSide(color: Colors.white),
                         ),

@@ -1,88 +1,74 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import '../games/snd/GamePage.dart';
-import 'package:page_transition/page_transition.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:Nguha/util/languages.dart';
 import 'package:provider/provider.dart';
-import 'package:Nguha/util/preference_model.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:Nguha/util/settings/preference_model.dart';
+import 'package:Nguha/util/firebase/add_user.dart';
+import 'package:Nguha/util/firebase/random_game_code.dart';
+import 'package:Nguha/util/firebase/delete_game.dart';
+import 'package:Nguha/util/languages.dart';
+import 'package:Nguha/util/firebase/is_host_bomb.dart';
+import 'package:Nguha/util/firebase/upload_game_info.dart';
+import 'package:Nguha/games/snd/SelectPage.dart';
+import 'package:Nguha/games/snd/PassiveHost.dart';
+import 'package:Nguha/games/snd/GamePage.dart';
 
 class SettingPage extends StatefulWidget {
-  SettingPage({Key? key}) : super(key: key);
+  String name = "";
+  SettingPage({Key? key, required String name}) : super(key: key) {
+    this.name = name;
+  }
 
   @override
   State<SettingPage> createState() => _SettingPageState();
 }
 
 class _SettingPageState extends State<SettingPage> {
-  Color backgroundColor = const Color.fromARGB(255, 32, 32, 32);
-  // Color backgroundColor = Color.fromARGB(255, 80, 80, 80);
+  String userCode = "";
+
   Color cardColor = const Color.fromARGB(255, 80, 80, 80);
-  // Color cardColor = Color.fromARGB(255, 138, 138, 138);
-  Color whiteColor = const Color.fromARGB(255, 255, 255, 255);
   double mediumFontSize = 36.0;
   double smallFontSize = 18.0;
 
   late double spacing = 5.0;
   String selected_game = 'Search n Destroy';
+  String gameCode = "";
+
+  // snd settings
+  bool _isHostBomb = true;
   String cardsRemember = '5';
   String passcodeAttempts = '3';
   bool passcodeChanges = true;
   String bombExplosionSec = '5m';
   bool soundOn = true;
   String waitSeconds = '15s'; // game starts in
-  String gameCode = "";
-
-  String gameStatePath = "";
-  DatabaseReference databaseref = FirebaseDatabase.instance.ref();
 
   @override
   void initState() {
     super.initState();
-    _getRandomCode().then((code) {
+    // get random game code then add user
+    getRandomGameCode().then((code) {
+      addUser(widget.name, code).then((code) {
+        setState(() {
+          userCode = code;
+        });
+      });
       setState(() {
         gameCode = code;
       });
     });
   }
 
+  // deactivate method deletes widget.code from firebase
+  @override
+  void deactivate() {
+    super.deactivate();
+    deleteGame(gameCode);
+  }
+
   @override
   void setState(fn) {
     if (mounted) {
       super.setState(fn);
-    }
-  }
-
-  String secondsToMinutes(double seconds) {
-    int sec = seconds.toInt();
-    // if seconds is less then 60 return seconds
-    if (seconds < 60) {
-      return seconds.toStringAsFixed(0) + 's';
-    } else {
-      int min = sec ~/ 60;
-      sec = sec % 60;
-      // if sec if less then 10 add 0 to front
-      if (sec < 10) {
-        return "$min:0$sec";
-      } else {
-        return "$min:$sec";
-      }
-    }
-  }
-
-  Future<String> _getRandomCode() async {
-    // gets unique 6 digit code
-    String digits = "";
-    for (int i = 0; i < 6; i++) {
-      digits += Random().nextInt(10).toString();
-    }
-    databaseref = FirebaseDatabase.instance.ref("games/" + digits);
-    final event = await databaseref.once(DatabaseEventType.value);
-    if (event.snapshot.value == null) {
-      return digits;
-    } else {
-      return _getRandomCode();
     }
   }
 
@@ -101,8 +87,8 @@ class _SettingPageState extends State<SettingPage> {
             children: <Widget>[
               Text(
                 translate('Bomb Explosion:', themeNotifier.language),
-                style: TextStyle(
-                  color: whiteColor,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -110,9 +96,9 @@ class _SettingPageState extends State<SettingPage> {
               // use theme of widget to style dropdown background color
 
               Container(
-                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  margin: const EdgeInsets.symmetric(vertical: 2),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(5)),
@@ -126,11 +112,11 @@ class _SettingPageState extends State<SettingPage> {
                       value: bombExplosionSec,
                       iconSize: 0,
                       elevation: 16,
-                      style: TextStyle(
-                          color: whiteColor,
+                      style: const TextStyle(
+                          color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold),
-                      underline: SizedBox(),
+                      underline: const SizedBox(),
                       onChanged: (String? newValue) {
                         setState(() {
                           bombExplosionSec = newValue!;
@@ -168,8 +154,8 @@ class _SettingPageState extends State<SettingPage> {
             children: <Widget>[
               Text(
                 translate('Wait Screen', themeNotifier.language),
-                style: TextStyle(
-                  color: whiteColor,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -177,9 +163,9 @@ class _SettingPageState extends State<SettingPage> {
               // use theme of widget to style dropdown background color
 
               Container(
-                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  margin: const EdgeInsets.symmetric(vertical: 2),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(5)),
@@ -193,11 +179,11 @@ class _SettingPageState extends State<SettingPage> {
                       value: waitSeconds,
                       iconSize: 0,
                       elevation: 16,
-                      style: TextStyle(
-                          color: whiteColor,
+                      style: const TextStyle(
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 20),
-                      underline: SizedBox(),
+                      underline: const SizedBox(),
                       onChanged: (String? newValue) {
                         setState(() {
                           waitSeconds = newValue!;
@@ -229,8 +215,8 @@ class _SettingPageState extends State<SettingPage> {
             children: <Widget>[
               Text(
                 translate('Plant/Defuse Attempts:', themeNotifier.language),
-                style: TextStyle(
-                  color: whiteColor,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -238,9 +224,9 @@ class _SettingPageState extends State<SettingPage> {
               // use theme of widget to style dropdown background color
 
               Container(
-                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  margin: const EdgeInsets.symmetric(vertical: 2),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(5)),
@@ -254,11 +240,11 @@ class _SettingPageState extends State<SettingPage> {
                       value: passcodeAttempts,
                       iconSize: 0,
                       elevation: 16,
-                      style: TextStyle(
-                          color: whiteColor,
+                      style: const TextStyle(
+                          color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold),
-                      underline: SizedBox(),
+                      underline: const SizedBox(),
                       onChanged: (String? newValue) {
                         setState(() {
                           passcodeAttempts = newValue!;
@@ -300,8 +286,8 @@ class _SettingPageState extends State<SettingPage> {
             children: <Widget>[
               Text(
                 translate('Cards To Remember', themeNotifier.language),
-                style: TextStyle(
-                  color: whiteColor,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -309,9 +295,9 @@ class _SettingPageState extends State<SettingPage> {
               // use theme of widget to style dropdown background color
 
               Container(
-                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  margin: const EdgeInsets.symmetric(vertical: 2),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(5)),
@@ -325,8 +311,8 @@ class _SettingPageState extends State<SettingPage> {
                       value: cardsRemember,
                       iconSize: 0,
                       elevation: 16,
-                      style: TextStyle(
-                          color: whiteColor,
+                      style: const TextStyle(
+                          color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold),
                       underline: const SizedBox(),
@@ -357,8 +343,8 @@ class _SettingPageState extends State<SettingPage> {
             children: <Widget>[
               Text(
                 translate('Passcode Changes', themeNotifier.language),
-                style: TextStyle(
-                  color: whiteColor,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -376,16 +362,6 @@ class _SettingPageState extends State<SettingPage> {
           ),
         ),
 
-        // SizedBox(height: spacing),
-        // Text(
-        //   'Sound:',
-        //   style: TextStyle(
-        //     color: whiteColor,
-        //     fontSize: 20,
-        //     fontWeight: FontWeight.bold,
-        //   ),
-        // ),
-
         SizedBox(height: spacing),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -394,8 +370,8 @@ class _SettingPageState extends State<SettingPage> {
             children: <Widget>[
               Text(
                 translate('Sound', themeNotifier.language),
-                style: TextStyle(
-                  color: whiteColor,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -413,17 +389,40 @@ class _SettingPageState extends State<SettingPage> {
           ),
         ),
 
-        Container(
+        SizedBox(
           width: MediaQuery.of(context).size.width,
           child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              primary: Theme.of(context).primaryColor,
-              minimumSize: const Size.fromHeight(40),
-            ),
-            onPressed: () {},
+            style: userCode == ""
+                ? ElevatedButton.styleFrom(
+                    primary: Colors.grey,
+                    minimumSize: const Size.fromHeight(40),
+                  )
+                : ElevatedButton.styleFrom(
+                    primary: Theme.of(context).primaryColor,
+                    minimumSize: const Size.fromHeight(40),
+                  ),
+            onPressed: () {
+              if (userCode != "") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SndSelectPage(code: gameCode),
+                  ),
+                );
+              }
+            },
             child: Text(
-              translate('Set Teams/Bombs', themeNotifier.language),
-              style: const TextStyle(fontSize: 24, color: Colors.white),
+              translate('Set Bombs', themeNotifier.language),
+              // if statement that if userCode is "" then style button as disabled
+              style: userCode == ""
+                  ? const TextStyle(
+                      color: Color.fromARGB(255, 99, 99, 99),
+                      fontSize: 20,
+                    )
+                  : const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),
             ),
           ),
         ),
@@ -437,25 +436,44 @@ class _SettingPageState extends State<SettingPage> {
               minimumSize: const Size.fromHeight(80),
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                PageTransition(
-                  type: PageTransitionType.fade,
-                  child: Variables(
-                      // remove last character from bombExplosionSec, convert to double and muiltply by 60
-                      (double.parse(bombExplosionSec.substring(
-                              0, bombExplosionSec.length - 1)) *
-                          60),
-                      soundOn,
-                      double.parse(cardsRemember),
-                      double.parse(passcodeAttempts),
-                      passcodeChanges,
-                      //    remove last character from string and parse to double
-                      double.parse(
-                          waitSeconds.substring(0, waitSeconds.length - 1)),
-                      gameCode),
-                ),
-              );
+              uploadGameInfoFuture(gameCode, cardsRemember, passcodeAttempts,
+                  passcodeChanges, bombExplosionSec, soundOn, waitSeconds);
+              isHostBomb(gameCode, userCode).then((value) => {
+                    if (value)
+                      {
+                        Navigator.push(
+                          context,
+                          PageTransition(
+                            type: PageTransitionType.fade,
+                            child: Variables(
+                              // remove last character from bombExplosionSec, convert to double and muiltply by 60
+                              (double.parse(bombExplosionSec.substring(
+                                      0, bombExplosionSec.length - 1)) *
+                                  60),
+                              soundOn,
+                              double.parse(cardsRemember),
+                              double.parse(passcodeAttempts),
+                              passcodeChanges,
+                              //    remove last character from string and parse to double
+                              double.parse(waitSeconds.substring(
+                                  0, waitSeconds.length - 1)),
+                              gameCode,
+                              userCode,
+                            ),
+                          ),
+                        )
+                      }
+                    else
+                      {
+                        Navigator.push(
+                          context,
+                          PageTransition(
+                            type: PageTransitionType.fade,
+                            child: PassiveHostPage(gameCode: gameCode),
+                          ),
+                        )
+                      }
+                  });
             },
             child: Text(
               translate('Start', themeNotifier.language),
@@ -482,7 +500,9 @@ class _SettingPageState extends State<SettingPage> {
             gameCode,
             textAlign: TextAlign.center,
             style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 48, color: whiteColor),
+                fontWeight: FontWeight.bold,
+                fontSize: 48,
+                color: themeNotifier.fontcolor),
           ),
           const SizedBox(
             height: 0,
@@ -496,7 +516,7 @@ class _SettingPageState extends State<SettingPage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: whiteColor,
+                    color: themeNotifier.fontcolor,
                   ),
                 ),
               ),
@@ -510,12 +530,12 @@ class _SettingPageState extends State<SettingPage> {
                     //remove icon
                     icon: Icon(
                       Icons.arrow_drop_down_rounded,
-                      color: whiteColor, size: 40,
+                      color: themeNotifier.fontcolor, size: 40,
                       // add padding to left
                     ),
                     elevation: 0,
                     style: TextStyle(
-                      color: whiteColor,
+                      color: themeNotifier.fontcolor,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -544,7 +564,7 @@ class _SettingPageState extends State<SettingPage> {
                                       value.substring(value.length - 13) ==
                                               '(Coming Soon)'
                                           ? Colors.grey
-                                          : whiteColor)));
+                                          : themeNotifier.fontcolor)));
                     }).toList(),
                   ),
                 ),
@@ -558,14 +578,14 @@ class _SettingPageState extends State<SettingPage> {
 
           if (selected_game == 'Search n Destroy')
             Container(
-                // 10 padding each side
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 43, 43, 43),
-                    borderRadius: BorderRadius.circular(5)),
-                child: SndSettings(themeNotifier))
+              // 10 padding each side
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 43, 43, 43),
+                  borderRadius: BorderRadius.circular(5)),
+              child: SndSettings(themeNotifier),
+            )
           else if (selected_game == 'Domination')
             const Text("Domination"),
 

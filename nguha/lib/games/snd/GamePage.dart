@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flame_audio/flame_audio.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:Nguha/util/languages.dart';
 import 'package:provider/provider.dart';
-import 'package:Nguha/util/preference_model.dart';
+import 'package:Nguha/games/snd/PassiveBomb.dart';
+import 'package:Nguha/util/firebase/listener.dart';
+import 'package:Nguha/util/settings/preference_model.dart';
+import 'package:Nguha/util/languages.dart';
+import 'package:Nguha/util/sound.dart';
 
 // create stateless widget
 class Variables extends StatefulWidget {
@@ -20,6 +21,7 @@ class Variables extends StatefulWidget {
   bool soundOn = true;
   bool passcodeChanges = true;
   String code = "";
+  String userCode = "";
 
   List<int> Game = [0, 5, 0, 3, 0, 2, 6, 0, 4, 1, 0, 0];
 
@@ -30,7 +32,8 @@ class Variables extends StatefulWidget {
       double passcodeAttempts,
       this.passcodeChanges,
       this.waitSeconds,
-      this.code) {
+      this.code,
+      this.userCode) {
     passPlaAttempts = passcodeAttempts;
     passDefAttempts = passcodeAttempts;
     allowedAttempts = passcodeAttempts;
@@ -41,24 +44,65 @@ class Variables extends StatefulWidget {
 }
 
 class exist extends State<Variables> {
-  // varibles used for game function
-  Timer? bombTimer;
-  List<int> Answer = [];
-  bool hideTiles = false;
-  bool bombPlanted = false;
-  String currState = "";
-  Timer? timer; // used for waiting screen countdown
+  // listen for startgame to equal false to pop context
 
-  String game_state = "";
-  String gameStatePath = "";
-  DatabaseReference databaseref = FirebaseDatabase.instance.ref();
+  StreamSubscription? _onStartGameStateChanged;
+
+  // varibles used for game function
+  Timer? _bombTimer;
+  List<int> _Answer = [];
+  bool _hideTiles = false;
+  bool _bombPlanted = false;
+  String _currState = "";
+  Timer? _timer; // used for waiting screen countdown
+  String _bombName = "";
 
   @override
   void initState() {
     super.initState();
-    String gameStatePath = "games/" + widget.code + "/game_state";
-    databaseref = FirebaseDatabase.instance.ref(gameStatePath);
-    _getThingsOnStartup().then((value) {});
+
+    _setGameState("1006");
+    _getThingsOnStartup();
+    _activateListeners();
+  }
+
+  void _deactivateListeners() {
+    super.deactivate();
+    if (_onStartGameStateChanged != null) {
+      _onStartGameStateChanged!.cancel();
+      _onStartGameStateChanged = null;
+    }
+  }
+
+  void _activateListeners() {
+    DatabaseListener startGameListener =
+        DatabaseListener("games/" + widget.code + "/info/startGame");
+
+    _onStartGameStateChanged = startGameListener.listenBool((bool _startGame) {
+      if (_startGame == false) {
+        _deactivateListeners();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PassiveBombPage(
+              gameCode: widget.code,
+            ),
+          ),
+        );
+      }
+    });
+  }
+
+  // deactivate method to gamestate to waiting
+  @override
+  void deactivate() {
+    // set to false
+    DatabaseListener("games/" + widget.code + "/info/").update({
+      "startGame": false,
+    });
+    _setGameState("0");
+    _deactivateListeners();
+    super.deactivate();
   }
 
   @override
@@ -68,22 +112,13 @@ class exist extends State<Variables> {
     }
   }
 
-  // deactivate method deletes widget.code from firebase
-  @override
-  void deactivate() {
-    super.deactivate();
-    String gameStatePath = "games/" + widget.code;
-    databaseref = FirebaseDatabase.instance.ref(gameStatePath);
-    databaseref.remove();
+  void _setGameState(String newState) {
+    DatabaseListener("games/" + widget.code + "/game_state").set(newState);
   }
 
-  void setGameState(String newState) {
-    databaseref.set(newState);
-  }
-
-  void PlayMusic(String music) {
+  void _PlayMusic(String music) {
     if (!widget.soundOn) return;
-    FlameAudio.play(music + '.mp3');
+    PlayMusic(music + '.mp3');
   }
 
   // get random 12 item list with 1 to given value rest being 0
@@ -103,7 +138,7 @@ class exist extends State<Variables> {
   }
 
   // given seconds return formated time
-  String secondsToMinutes(double seconds) {
+  String _secondsToMinutes(double seconds) {
     int sec = seconds.toInt();
     // if seconds is less then 60 return seconds
     if (seconds < 60) {
@@ -120,115 +155,131 @@ class exist extends State<Variables> {
     }
   }
 
-  void resetGame() {
+  void _resetGame() {
     setState(() {
       if (widget.passcodeChanges) {
         // if passcode changes change passcode
         widget.Game = _getRandomList(widget.cardsRemember.toInt());
       }
-      Answer = [];
-      hideTiles = false;
+      _Answer = [];
+      _hideTiles = false;
     });
   }
 
   void explodeBomb() {
-    PlayMusic('explosion');
-    setGameState("1003");
+    _PlayMusic('explosion');
+    _setGameState("1003");
     setState(() {
-      hideTiles = true;
-      currState = "Bomb Exploded";
+      _hideTiles = true;
+      _currState = "Bomb Exploded";
     });
   }
 
-  void plantBomb() {
-    resetGame();
-    setGameState("1002");
+  void _plantBomb() {
+    // get value
+    DatabaseListener(
+            "games/" + widget.code + "/users/" + widget.userCode + "/name/")
+        .getOnceString()
+        .then((_name) {
+      setState(() {
+        _bombName = _name;
+      });
+    });
+    _deactivateListeners();
+
+    DatabaseListener("games/" + widget.code + "/info/").update({
+      "startGame": false,
+      "active_bomb": _bombName,
+    });
+
+    _resetGame();
+    _setGameState("1002");
     setState(() {
-      PlayMusic('BombPlanted');
-      startbombTimer();
-      bombPlanted = true;
-      currState = "Bomb Planted";
+      _PlayMusic('_bombPlanted');
+      _start_bombTimer();
+      _bombPlanted = true;
+      _currState = "Bomb Planted";
     });
   }
 
-  void defuseBomb() {
-    PlayMusic('BombDefused');
-    setGameState("1001");
+  void _defuseBomb() {
+    _PlayMusic('BombDefused');
+    _setGameState("1001");
     setState(() {
-      currState = "Bomb Defused";
-      hideTiles = true;
-      bombTimer?.cancel(); // stop bombTimer
+      _currState = "Bomb Defused";
+      _hideTiles = true;
+      _bombTimer?.cancel(); // stop _bombTimer
     });
   }
 
-  void hideAllTiles() {
+  void _hideAllTiles() {
     setState(() {
-      hideTiles = true;
+      _hideTiles = true;
     });
   }
 
-  void addToAnswer(int number) {
+  void _addTo_Answer(int number) {
     // if given number is correct
-    if (number == (Answer.length + 1)) {
-      Answer.add(number);
+    if (number == (_Answer.length + 1)) {
+      _Answer.add(number);
       if (number == widget.cardsRemember.toInt()) {
-        if (bombPlanted) {
-          defuseBomb();
+        if (_bombPlanted) {
+          _defuseBomb();
         } else {
-          plantBomb();
+          _plantBomb();
         }
-      } else if (Answer.length == 1) {
-        hideAllTiles();
+      } else if (_Answer.length == 1) {
+        _hideAllTiles();
       }
     } else {
       // if wrong number, if still has attempts restart, else explode
-      if (!bombPlanted && widget.passPlaAttempts > 0 ||
-          bombPlanted && widget.passDefAttempts > 0) {
+      if (!_bombPlanted && widget.passPlaAttempts > 0 ||
+          _bombPlanted && widget.passDefAttempts > 0) {
         setState(() {
           widget.passPlaAttempts--;
-          resetGame();
+          _resetGame();
         });
-      } else if (!bombPlanted) {
+      } else if (!_bombPlanted) {
         explodeBomb();
       }
     }
   }
 
-  void startbombTimer() {
-    bombTimer = Timer.periodic(const Duration(seconds: 1), (Timer bombTimer) {
+  void _start_bombTimer() {
+    _bombTimer = Timer.periodic(const Duration(seconds: 1), (Timer _bombTimer) {
       setState(() {
         if (widget.bombExplosionSec > 0) {
           widget.bombExplosionSec--;
           // play sound if at correct interval 10, 30, 45 sec, 1, 2, 5, 10, 15 minutes
           if (widget.soundOn) {
             if (widget.bombExplosionSec == 10) {
-              setGameState("10");
-              PlayMusic('10second');
+              _setGameState("10");
+              _PlayMusic('10second');
             } else if (widget.bombExplosionSec == 30) {
-              setGameState("30");
-              PlayMusic('30second');
+              _setGameState("30");
+              _PlayMusic('30second');
             } else if (widget.bombExplosionSec == 45) {
-              setGameState("45");
-              PlayMusic('45second');
+              _setGameState("45");
+              _PlayMusic('45second');
             } else if (widget.bombExplosionSec == 60) {
-              setGameState("60");
-              PlayMusic('1minute');
+              _setGameState("60");
+              _PlayMusic('1minute');
             } else if (widget.bombExplosionSec == 120) {
-              setGameState("120");
-              PlayMusic('2minute');
+              _setGameState("120");
+              _PlayMusic('2minute');
             } else if (widget.bombExplosionSec == 300) {
-              setGameState("300");
-              PlayMusic('5minute');
+              _setGameState("300");
+              _PlayMusic('5minute');
             } else if (widget.bombExplosionSec == 600) {
-              setGameState("600");
-              PlayMusic('10minute');
+              _setGameState("600");
+              _PlayMusic('10minute');
             } else if (widget.bombExplosionSec == 900) {
-              setGameState("900");
-              PlayMusic('15minute');
+              _setGameState("900");
+              _PlayMusic('15minute');
             }
           }
         } else {
-          bombTimer.cancel();
+          _bombTimer.cancel();
           explodeBomb();
         }
       });
@@ -240,7 +291,7 @@ class exist extends State<Variables> {
     widget.Game = _getRandomList(widget.cardsRemember.toInt());
     // start wait time countdown
     if (widget.waitSeconds > 0) {
-      timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
         setState(() {
           if (widget.waitSeconds > 0) {
             widget.waitSeconds--;
@@ -252,21 +303,35 @@ class exist extends State<Variables> {
     }
   }
 
+  // future function to call sound after second
+  Future<void> _playSound() async {
+    await Future.delayed(Duration(seconds: 1));
+    _setGameState("go");
+    _PlayMusic('go');
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays([]);
-    if (widget.waitSeconds == 3 && widget.soundOn) {
-      setGameState("3");
-      PlayMusic('3');
+    if (widget.waitSeconds == 10 && widget.soundOn) {
+      _setGameState("10");
+      _PlayMusic('10second');
+    } else if (widget.waitSeconds == 30 && widget.soundOn) {
+      _setGameState("30");
+      _PlayMusic('30second');
+    } else if (widget.waitSeconds == 60 && widget.soundOn) {
+      _setGameState("60");
+      _PlayMusic('1minute');
+    } else if (widget.waitSeconds == 3 && widget.soundOn) {
+      _setGameState("3");
+      _PlayMusic('3');
     } else if (widget.waitSeconds == 2 && widget.soundOn) {
-      setGameState("2");
-      PlayMusic('2');
+      _setGameState("2");
+      _PlayMusic('2');
     } else if (widget.waitSeconds == 1 && widget.soundOn) {
-      setGameState("1");
-      PlayMusic('1');
-    } else if (widget.waitSeconds == 1 && widget.soundOn) {
-      setGameState("go");
-      PlayMusic('go');
+      _setGameState("1");
+      _PlayMusic('1');
+      _playSound();
     }
     // if waitSeconds is 0 show game else show empty material app
     if (widget.waitSeconds == 0) {
@@ -286,10 +351,10 @@ class exist extends State<Variables> {
                 children: <Widget>[
                   // show text of current state
                   Text(
-                    translate(currState, themeNotifier.language),
+                    translate(_currState, themeNotifier.language),
                     style: TextStyle(
                         // change font family to poppins
-                        color: currState == "Bomb Defused"
+                        color: _currState == "Bomb Defused"
                             ? Colors.green
                             : Colors.red,
                         fontSize: 75,
@@ -307,18 +372,19 @@ class exist extends State<Variables> {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.only(left: 70.0),
-                          child: Text(secondsToMinutes(widget.bombExplosionSec),
-                              style: TextStyle(
-                                color: currState == "Bomb Planted"
-                                    ? Colors.red
-                                    : currState == "Bomb Defused"
-                                        ? Colors.green
-                                        : Colors.transparent,
-                                fontSize: 55,
-                                fontFamily: 'BebasNeue',
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center),
+                          child:
+                              Text(_secondsToMinutes(widget.bombExplosionSec),
+                                  style: TextStyle(
+                                    color: _currState == "Bomb Planted"
+                                        ? Colors.red
+                                        : _currState == "Bomb Defused"
+                                            ? Colors.green
+                                            : Colors.transparent,
+                                    fontSize: 55,
+                                    fontFamily: 'BebasNeue',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center),
                         ),
                       ),
                       // add help icon
@@ -375,9 +441,9 @@ class exist extends State<Variables> {
 
                   // Game Squares
                   // grid view of square buttons
-                  // if currState does not equal 'Bomb Defused' show grid
-                  if (currState != "Bomb Defused" &&
-                      currState != "Bomb Exploded")
+                  // if _currState does not equal 'Bomb Defused' show grid
+                  if (_currState != "Bomb Defused" &&
+                      _currState != "Bomb Exploded")
                     GridView.count(
                       shrinkWrap: true,
                       crossAxisCount: 3,
@@ -387,16 +453,16 @@ class exist extends State<Variables> {
                           return Padding(
                               padding: const EdgeInsets.all(5),
                               child: RaisedButton(
-                                // if game[index] is not 0 and game[index] not in answer add 5 elevation else 0
+                                // if game[index] is not 0 and game[index] not in _Answer add 5 elevation else 0
                                 elevation: 5,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5),
                                 ),
-                                color: (widget.Game[index] == 0 || hideTiles)
+                                color: (widget.Game[index] == 0 || _hideTiles)
                                     ? Colors.transparent
                                     : Theme.of(context).primaryColor,
                                 onPressed: () {
-                                  addToAnswer(widget.Game[index]);
+                                  _addTo_Answer(widget.Game[index]);
                                 },
                                 child: Text(
                                   widget.Game[index] == 0
@@ -404,8 +470,8 @@ class exist extends State<Variables> {
                                       : widget.Game[index].toString(),
                                   style: TextStyle(
                                       fontSize: 50,
-                                      // color white unless hidetiles then transparent
-                                      color: hideTiles
+                                      // color white unless _hideTiles then transparent
+                                      color: _hideTiles
                                           ? Colors.transparent
                                           : Colors.white),
                                 ),
@@ -416,7 +482,7 @@ class exist extends State<Variables> {
                   const SizedBox(
                     height: 10,
                   ),
-                  currState == "Bomb Defused" || currState == "Bomb Exploded"
+                  _currState == "Bomb Defused" || _currState == "Bomb Exploded"
                       ? Padding(
                           padding: const EdgeInsets.all(10),
                           child: ElevatedButton(
@@ -425,8 +491,8 @@ class exist extends State<Variables> {
                               minimumSize: const Size.fromHeight(80), // NEW
                             ),
                             onPressed: () {
+                              _bombTimer?.cancel();
                               Navigator.pop(context);
-                              bombTimer?.cancel();
                             },
                             child: Text(
                               translate("Back", themeNotifier.language),
@@ -474,7 +540,7 @@ class exist extends State<Variables> {
                     height: 0,
                   ),
                   Text(
-                    secondsToMinutes(widget.waitSeconds),
+                    _secondsToMinutes(widget.waitSeconds),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 55,

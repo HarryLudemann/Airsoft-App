@@ -1,44 +1,52 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:flame_audio/flame_audio.dart';
-import 'package:Nguha/util/languages.dart';
 import 'package:provider/provider.dart';
-import 'package:Nguha/util/preference_model.dart';
+import 'package:Nguha/util/languages.dart';
+import 'package:Nguha/util/settings/preference_model.dart';
+import 'package:Nguha/games/snd/GamePage.dart';
+import 'package:Nguha/util/firebase/add_user.dart';
+import 'package:Nguha/util/firebase/remove_user.dart';
+import 'package:Nguha/util/firebase/listener.dart';
+import 'package:Nguha/util/sound.dart';
 
 class JoinedPage extends StatefulWidget {
   String code = "";
   bool sound = true;
-  JoinedPage({required Key key, required String code, bool? sound})
+  String name = "";
+  JoinedPage(
+      {required Key key,
+      required String code,
+      bool? sound,
+      required String name})
       : super(key: key) {
     if (sound != null) {
       this.sound = sound;
     }
     this.code = code;
+    this.name = name;
   }
   @override
   State<JoinedPage> createState() => _JoinedPageState();
 }
 
 class _JoinedPageState extends State<JoinedPage> {
-  String game_state = "";
-  String gameStatePath = "";
-  DatabaseReference databaseref = FirebaseDatabase.instance.ref();
   StreamSubscription? _onGameStateChanged;
-
+  StreamSubscription? _onInfoChanged;
+  String userCode = "";
+  String game_state = "";
   bool muted = false;
 
   @override
   void initState() {
     super.initState();
-    String gameStatePath = "games/" + widget.code + "/game_state";
-    databaseref = FirebaseDatabase.instance.ref(gameStatePath);
+    addUser(widget.name, widget.code);
     _activateListeners();
   }
 
   @override
   void deactivate() {
     _deactivateListeners();
+    removeUser(widget.code, userCode);
     super.deactivate();
   }
 
@@ -48,91 +56,172 @@ class _JoinedPageState extends State<JoinedPage> {
       _onGameStateChanged!.cancel();
       _onGameStateChanged = null;
     }
-  }
-
-  void _activateListeners() {
-    Stream<DatabaseEvent> stream = databaseref.onValue;
-
-    _onGameStateChanged = stream.listen((DatabaseEvent event) {
-      setState(() {
-        this.game_state = event.snapshot.value as String;
-      });
-    });
-  }
-
-  void PlayMusic(String music) {
-    if (!widget.sound) return;
-    FlameAudio.play(music + '.mp3');
-  }
-
-  void playSound(String sound) {
-    if (muted) return;
-    if (sound == "10") {
-      PlayMusic('10second');
-    } else if (sound == '1') {
-      PlayMusic('1');
-    } else if (sound == '2') {
-      PlayMusic('2');
-    } else if (sound == '3') {
-      PlayMusic('3');
-    } else if (sound == "go") {
-      PlayMusic('go');
-    } else if (sound == '30') {
-      PlayMusic('30second');
-    } else if (sound == '45') {
-      PlayMusic('45second');
-    } else if (sound == '60') {
-      PlayMusic('1minute');
-    } else if (sound == '120') {
-      PlayMusic('2minute');
-    } else if (sound == '300') {
-      PlayMusic('5minute');
-    } else if (sound == '600') {
-      PlayMusic('10minute');
-    } else if (sound == '900') {
-      PlayMusic('15minute');
-    } else if (sound == '1001') {
-      PlayMusic('BombDefused');
-    } else if (sound == '1002') {
-      PlayMusic('BombPlanted');
-    } else if (sound == '1003') {
-      PlayMusic('explosion');
+    if (_onInfoChanged != null) {
+      _onInfoChanged!.cancel();
+      _onInfoChanged = null;
     }
   }
 
+  void _activateListeners() {
+    DatabaseListener gameStateListener =
+        DatabaseListener("games/" + widget.code + "/game_state");
+
+    DatabaseListener startGameListener =
+        DatabaseListener("games/" + widget.code + "/info/startGame");
+
+    _onGameStateChanged = gameStateListener.listenString((String event) {
+      setState(() {
+        this.game_state = event as String;
+      });
+    });
+
+    _onInfoChanged = startGameListener.listenBool((bool event) {
+      // if event.snapshot.value == true get info and pass to gamepage
+      if (event == true) {
+        // get user team from firebase
+        // databaseref = FirebaseDatabase.instance
+        //     .ref("games/" + widget.code + "/users/" + userCode + "/team");
+        // if team is #1 Bomb or #2 Bomb or #3 Bomb
+        DatabaseListener(
+                "games/" + widget.code + "/users/" + userCode + "/team")
+            .getOnceString()
+            .then((String team) {
+          if (team == "#1 Bomb" || team == "#2 Bomb") {
+            double bombExplosionSec = 360.0;
+            double cardsRemember = 5.0;
+            double passcodeAttempts = 10.0;
+            bool passcodeChanges = true;
+            bool soundOn = true;
+            double waitSeconds = 0.0;
+
+            int varsReceived = 0;
+
+            void _incrementVars() {
+              varsReceived++;
+              if (varsReceived != 6) {
+                return;
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Variables(
+                    bombExplosionSec,
+                    soundOn,
+                    cardsRemember,
+                    passcodeAttempts,
+                    passcodeChanges,
+                    waitSeconds,
+                    widget.code,
+                    userCode,
+                  ),
+                ),
+              );
+            }
+
+            // set values from firebase info
+            DatabaseListener("games/" + widget.code + "/info/bombExplosionSec")
+                .getOnceString()
+                .then((String _bombExplosionSec) {
+              bombExplosionSec = double.parse(_bombExplosionSec);
+              _incrementVars();
+            });
+
+            DatabaseListener("games/" + widget.code + "/info/cardsRemember")
+                .getOnceString()
+                .then((String _cardsRemember) {
+              cardsRemember = double.parse(_cardsRemember);
+              _incrementVars();
+            });
+
+            DatabaseListener("games/" + widget.code + "/info/passcodeAttempts")
+                .getOnceString()
+                .then((String _passcodeAttempts) {
+              passcodeAttempts = double.parse(_passcodeAttempts);
+              _incrementVars();
+            });
+
+            DatabaseListener("games/" + widget.code + "/info/passcodeChanges")
+                .getOnceBool()
+                .then((bool _passcodeChanges) {
+              passcodeChanges = _passcodeChanges;
+              _incrementVars();
+            });
+
+            DatabaseListener("games/" + widget.code + "/info/soundOn")
+                .getOnceBool()
+                .then((bool _soundOn) {
+              soundOn = _soundOn;
+              _incrementVars();
+            });
+
+            DatabaseListener("games/" + widget.code + "/info/waitSeconds")
+                .getOnceString()
+                .then((String _waitSeconds) {
+              waitSeconds = double.parse(_waitSeconds);
+              _incrementVars();
+            });
+          }
+        });
+      }
+    });
+  }
+
+  void _PlayMusic(String music) {
+    if (!widget.sound) return;
+    PlayMusic(music + '.mp3');
+  }
+
   // function given gamestate or sound return text
-  String getText(String gameState) {
-    playSound(gameState);
+  String getTextPlaySound(String gameState) {
     if (gameState == "10") {
+      _PlayMusic('10second');
       return "10 seconds";
+    } else if (gameState == "0") {
+      return "Waiting";
     } else if (gameState == "1") {
+      _PlayMusic('1');
       return "1";
     } else if (gameState == "2") {
+      _PlayMusic('2');
       return "2";
     } else if (gameState == "3") {
+      _PlayMusic('3');
       return "3";
     } else if (gameState == "go") {
+      _PlayMusic('go');
       return "GO!";
     } else if (gameState == "30") {
+      _PlayMusic('30second');
       return "30 seconds";
     } else if (gameState == "45") {
+      _PlayMusic('45second');
       return "45 seconds";
     } else if (gameState == "60") {
+      _PlayMusic('1minute');
       return "1 minute";
     } else if (gameState == "120") {
+      _PlayMusic('2minute');
       return "2 minutes";
     } else if (gameState == "300") {
+      _PlayMusic('5minute');
       return "5 minutes";
     } else if (gameState == "600") {
+      _PlayMusic('10minute');
       return "10 minutes";
     } else if (gameState == "900") {
+      _PlayMusic('15minute');
       return "15 minutes";
     } else if (gameState == "1001") {
+      _PlayMusic('BombDefused');
       return "Bomb Defused";
     } else if (gameState == "1002") {
+      _PlayMusic('BombPlanted');
       return "Bomb Planted";
     } else if (gameState == "1003") {
+      _PlayMusic('explosion');
       return "Explosion";
+    } else if (gameState == "1006") {
+      return "Game Starting";
     } else {
       return "Waiting";
     }
@@ -149,13 +238,15 @@ class _JoinedPageState extends State<JoinedPage> {
               const Spacer(),
               Center(
                 child: Text(
-                    translate(getText(game_state), themeNotifier.language),
-                    style: const TextStyle(fontSize: 32, color: Colors.white)),
+                    translate(
+                        getTextPlaySound(game_state), themeNotifier.language),
+                    style: TextStyle(
+                        fontSize: 32, color: themeNotifier.fontcolor)),
               ),
               const Spacer(),
               IconButton(
                 iconSize: 48,
-                color: Colors.white,
+                color: themeNotifier.fontcolor,
                 icon: muted
                     ? const Icon(Icons.volume_off)
                     : const Icon(Icons.volume_up),

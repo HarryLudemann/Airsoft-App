@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:Nguha/home/HomeWidget.dart';
 import 'package:Nguha/home/HelpWidget.dart';
 import 'package:Nguha/home/SettingWidget.dart';
+// for SettingsHome widget
+import 'package:provider/provider.dart';
+import 'package:Nguha/util/settings/preference_model.dart';
+import 'package:Nguha/util/settings/language_preference.dart';
+import 'package:flutter/services.dart';
+import 'package:Nguha/util/languages.dart';
 
 // create stateless widget
 class Homepage extends StatefulWidget {
@@ -12,10 +17,15 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   double mediumFontSize = 36.0;
-
   int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  int _selectedSettingIndex = 0;
+
+  // moves display widget to the given index widget
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,41 +35,32 @@ class _HomepageState extends State<Homepage> {
       HomeWidget(context),
       // second page help page
       HelpWidget(context),
-      // fourth page
+      // Setting Home
       SettingWidget(context),
     ];
-
-    // moves display widget to the given index widget
-    void _onItemTapped(int index) {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
 
     return Scaffold(
       //appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       bottomNavigationBar: BottomNavigationBar(
+        // type: BottomNavigationBarType.fixed,
         // use bottom navigation theme data from theme
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: const Icon(Icons.home),
             label: '',
-            backgroundColor:
-                Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+            backgroundColor: Theme.of(context).primaryColor,
             // backgroundColor: Colors.red,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.help),
+            icon: const Icon(Icons.help),
             label: '',
-            backgroundColor:
-                Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+            backgroundColor: Theme.of(context).primaryColor,
             // backgroundColor: Colors.green,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
+            icon: const Icon(Icons.settings),
             label: '',
-            backgroundColor:
-                Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+            backgroundColor: Theme.of(context).primaryColor,
             // backgroundColor: Colors.pink,
           ),
         ],
@@ -69,6 +70,7 @@ class _HomepageState extends State<Homepage> {
         unselectedItemColor:
             Theme.of(context).bottomNavigationBarTheme.unselectedItemColor,
         selectedIconTheme: const IconThemeData(size: 30),
+        unselectedIconTheme: const IconThemeData(size: 30),
         onTap: _onItemTapped,
       ),
       // set background to use theme color
