@@ -4,7 +4,10 @@
 final Map<String, String> frenchDict = {
   "Host: ": "Hôte: ",
   "Join: ": "Rejoindre: ",
+  "Host": "Hôte",
+  "Join": "Rejoindre",
   "GO!": "VA!",
+  "Back": "Retour",
   "45 seconds": "45 secondes",
   "30 seconds": "30 secondes",
   "10 seconds": "10 secondes",
@@ -42,13 +45,19 @@ final Map<String, String> frenchDict = {
   "Display Name:": "Nom d'affichage:",
   "Primary Color:": "Couleur primaire:",
   "Language:": "Langue:",
+  "Settings": "Paramètres",
+  "Languages": "Langues",
+  "Language:": "Langue:",
 };
 
 // key is english, value is spanish
 final Map<String, String> spanishDict = {
   "Host: ": "Anfitrión: ",
   "Join: ": "Unirse: ",
+  "Host": "Anfitrión",
+  "Join": "Unirse",
   "GO!": "¡VA!",
+  "Back": "Volver",
   "45 seconds": "45 segundos",
   "30 seconds": "30 segundos",
   "10 seconds": "10 segundos",
@@ -85,14 +94,20 @@ final Map<String, String> spanishDict = {
   "Settings": "Configuración",
   "Display Name:": "Nombre de pantalla:",
   "Primary Color:": "Color primario:",
-  "Language:": "Idioma:"
+  "Language:": "Idioma:",
+  "Settings": "Configuración",
+  "Languages": "Idiomas",
+  "Language:": "Idioma:",
 };
 
 // key is english, value is russian
 final Map<String, String> russianDict = {
   "Host: ": "Хост: ",
   "Join: ": "Присоединиться: ",
+  "Host": "Хост",
+  "Join": "Присоединиться",
   "GO!": "ВАЛЕ!",
+  "Back": "Назад",
   "45 seconds": "45 секунд",
   "30 seconds": "30 секунд",
   "10 seconds": "10 секунд",
@@ -129,14 +144,20 @@ final Map<String, String> russianDict = {
   "Settings": "Настройки",
   "Display Name:": "Имя для отображения:",
   "Primary Color:": "Основной цвет:",
-  "Language:": "Язык:"
+  "Language:": "Язык:",
+  "Settings": "Настройки",
+  "Languages": "Языки",
+  "Language:": "Язык:",
 };
 
 // key is english, value is german
 final Map<String, String> germanDict = {
   "Host: ": "Host: ",
   "Join: ": "Beitreten: ",
+  "Host": "Host",
+  "Join": "Beitreten",
   "GO!": "GO!",
+  "Back": "Zurück",
   "45 seconds": "45 Sekunden",
   "30 seconds": "30 Sekunden",
   "10 seconds": "10 Sekunden",
@@ -173,12 +194,14 @@ final Map<String, String> germanDict = {
   "Settings": "Einstellungen",
   "Display Name:": "Anzeigename:",
   "Primary Color:": "Primärer Farbton:",
-  "Language:": "Sprache:"
+  "Language:": "Sprache:",
+  "Settings": "Einstellungen",
+  "Languages": "Sprachen",
+  "Language:": "Sprache:",
 };
 
 String translate(text, [language = "English"]) {
-  if (text == "English") return text;
-
+  if (language == "English") return text;
   // translate search n destroy help menu
   if (text ==
       "1. Plant/Defuse bomb by completing keycode.\n\n2. Finish keycode by selecting numbers in ascending order.\n\n3. Numbers disappear after first tile is selected.\n\n") {
@@ -224,6 +247,8 @@ String translate(text, [language = "English"]) {
       return text;
     }
   }
+
+  print("No Translation Found: " + text);
 
   return text;
 }

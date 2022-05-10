@@ -159,6 +159,8 @@ class _AccountPageState extends State<AccountPage> {
                           child: RaisedButton(
                             color: themeNotifier.primaryColor,
                             onPressed: () {
+                              SystemChrome.setEnabledSystemUIOverlays(
+                                  []); // hide ui elements
                               Navigator.pop(context);
                             },
                             child: Text(

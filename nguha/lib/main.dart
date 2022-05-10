@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
             bottomNavigationBarTheme: BottomNavigationBarThemeData(
               showSelectedLabels: false,
               showUnselectedLabels: false,
-              elevation: 18,
+              elevation: 0,
               backgroundColor: themeNotifier.backgroundColor,
               selectedItemColor: themeNotifier.primaryColor,
               unselectedItemColor: const Color.fromARGB(255, 174, 174, 174),

@@ -102,7 +102,7 @@ class PreferenceModel extends ChangeNotifier {
       notifyListeners();
     }
 
-    Color? background = await _fontColorPreferences.getFontColor();
+    Color? background = await _backgroundColorPreferences.getBackground();
     if (background != null) {
       _backgroundColor = background;
       notifyListeners();

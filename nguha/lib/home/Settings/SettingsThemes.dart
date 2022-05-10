@@ -41,16 +41,13 @@ class _ThemePageState extends State<ThemePage> {
       Colors.grey,
     ];
 
-    const List<Color> _themes = [
-      Color.fromARGB(255, 34, 34, 34),
-      Color.fromARGB(255, 238, 238, 238),
-    ];
-
-    // themes get corresponding index in this list as index in themes list
-    const List<Color> _fontcolors = [
-      Color.fromARGB(255, 238, 238, 238),
-      Color.fromARGB(255, 51, 51, 51),
-    ];
+    // theme map key is background, value is font color
+    final Map<Color, Color> themeMap = {
+      const Color.fromARGB(255, 34, 34, 34):
+          const Color.fromARGB(255, 238, 238, 238),
+      const Color.fromARGB(255, 238, 238, 238):
+          const Color.fromARGB(255, 34, 34, 34)
+    };
 
     return Scaffold(
         backgroundColor: Theme.of(context).backgroundColor,
@@ -136,15 +133,14 @@ class _ThemePageState extends State<ThemePage> {
                     crossAxisCount: 6,
                     children: <Widget>[
                       // loop through the list of colors
-                      for (Color color in _themes)
+                      for (Color color in themeMap.keys)
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             primary: color,
                           ),
                           onPressed: () {
+                            themeNotifier.fontcolor = themeMap[color] as Color;
                             themeNotifier.backgroundColor = color;
-                            themeNotifier.fontcolor =
-                                _fontcolors[_themes.indexOf(color)];
                           },
                           child: const Text(""),
                         ),
@@ -156,7 +152,7 @@ class _ThemePageState extends State<ThemePage> {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate(
                       [
-                        Container(
+                        SizedBox(
                           height: 60,
                           child: RaisedButton(
                             color: themeNotifier.primaryColor,
