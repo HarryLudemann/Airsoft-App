@@ -115,7 +115,8 @@ class _JoinPageState extends State<JoinPage> {
                           builder: (context) => JoinedPage(
                               code: code,
                               key: Key(code),
-                              name: themeNotifier.username),
+                              name: themeNotifier.username,
+                              themeNotifier: themeNotifier),
                         ),
                       );
                     },

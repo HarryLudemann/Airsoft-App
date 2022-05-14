@@ -66,7 +66,9 @@ class MyApp extends StatelessWidget {
                 },
               );
             },
-            '/HostGame': (context) => HostPage(name: themeNotifier.username),
+            '/HostGame': (context) => HostPage(
+                  themeNotifier: themeNotifier,
+                ),
             '/JoinGame': (context) => const JoinPage(),
             '/SndHelp': (context) => const SndHelpPage(),
             '/DomHelp': (context) => const DomHelpPage(),

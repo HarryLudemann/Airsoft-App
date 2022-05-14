@@ -36,7 +36,10 @@ class DatabaseListener {
 
   StreamSubscription<DatabaseEvent> listenBool(void onData(bool event)) {
     return _database.onValue.listen((event) {
-      onData(event.snapshot.value as bool);
+      // if event.snapshot.value is not null
+      if (event.snapshot.value != null) {
+        onData(event.snapshot.value as bool);
+      }
     });
   }
 
