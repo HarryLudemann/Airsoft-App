@@ -61,7 +61,6 @@ class Game extends State<GamePage> {
   List<int> _board = []; // represent game keypad
   List<int> _currentAnswer = []; // current inputed answer
   bool _hideTiles = false; // if true, game returns 12 "-1"
-  int _passPlantAttempts = 0;
   int _passDefuseAttempts = 0;
   String _bombName = "";
 
@@ -70,7 +69,6 @@ class Game extends State<GamePage> {
     super.initState();
     _board = _getRandomList(widget.cardsToRemember);
     _bombExplosionSeconds = widget.bombExplosionSeconds;
-    _passPlantAttempts = widget.passcodeAttempts;
     _passDefuseAttempts = widget.passcodeAttempts;
     _setGameState(GAME_STARTING);
     _activateListeners();
@@ -166,9 +164,8 @@ class Game extends State<GamePage> {
       }
     } else {
       // if wrong number, if still has attempts restart, else explode
-      if (_gameState != BOMB_PLANTED && _passPlantAttempts > 0 ||
+      if (_gameState != BOMB_PLANTED ||
           _gameState == BOMB_PLANTED && _passDefuseAttempts > 0) {
-        _passPlantAttempts--;
         _resetBoard();
       } else if (_gameState != BOMB_PLANTED) {
         _explodeBomb();

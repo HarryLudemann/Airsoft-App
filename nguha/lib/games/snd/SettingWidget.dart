@@ -8,7 +8,6 @@ import 'package:Nguha/util/firebase/upload_game_info.dart';
 import 'package:Nguha/games/snd/SelectBombsPage.dart';
 import 'package:Nguha/games/snd/PassiveHostPage.dart';
 import 'package:Nguha/games/snd/WaitingPage.dart';
-import 'package:Nguha/util/firebase/get_snd_info.dart';
 
 class SndSettingsWidget extends StatefulWidget {
   PreferenceModel themeNotifier;
@@ -37,12 +36,6 @@ class _SndSettingsWidgetState extends State<SndSettingsWidget> {
   String bombExplosionSec = '5m';
   bool soundOn = true;
   String waitSeconds = '15s'; // game starts in
-
-  @override
-  void initState() {
-    super.initState();
-    getSndInfo(widget.gameCode);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -399,13 +392,14 @@ class _SndSettingsWidgetState extends State<SndSettingsWidget> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SndSelectPage(code: widget.gameCode),
+                    builder: (context) => SndSelectPage(
+                        code: widget.gameCode, userCode: widget.userCode),
                   ),
                 );
               }
             },
             child: Text(
-              translate('Set Bombs', widget.themeNotifier.language),
+              translate('Set Teams/Bombs', widget.themeNotifier.language),
               // if statement that if userCode is "" then style button as disabled
               style: widget.userCode == ""
                   ? const TextStyle(
@@ -449,7 +443,6 @@ class _SndSettingsWidgetState extends State<SndSettingsWidget> {
                           PageTransition(
                             type: PageTransitionType.fade,
                             child: WaitingPage(
-                              // remove last character from bombExplosionSec, convert to double and muiltply by 60
                               (double.parse(bombExplosionSec.substring(
                                       0, bombExplosionSec.length - 1)) *
                                   60),
@@ -457,7 +450,6 @@ class _SndSettingsWidgetState extends State<SndSettingsWidget> {
                               double.parse(cardsRemember),
                               double.parse(passcodeAttempts),
                               passcodeChanges,
-                              //    remove last character from string and parse to double
                               double.parse(waitSeconds.substring(
                                   0, waitSeconds.length - 1)),
                               widget.gameCode,

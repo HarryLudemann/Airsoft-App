@@ -28,13 +28,15 @@ class DatabaseListener {
     return result;
   }
 
-  StreamSubscription<DatabaseEvent> listenString(void onData(String event)) {
+  StreamSubscription<DatabaseEvent> listenString(
+      void Function(String event) onData) {
     return _database.onValue.listen((event) {
       onData(event.snapshot.value.toString());
     });
   }
 
-  StreamSubscription<DatabaseEvent> listenBool(void onData(bool event)) {
+  StreamSubscription<DatabaseEvent> listenBool(
+      void Function(bool event) onData) {
     return _database.onValue.listen((event) {
       // if event.snapshot.value is not null
       if (event.snapshot.value != null) {
@@ -45,7 +47,8 @@ class DatabaseListener {
 
   // listen for a table with two values for each base item
   StreamSubscription<DatabaseEvent> listenTwoChildList(
-      void onData(Map<String, String> map, Map<String, String> mapKeys)) {
+      void Function(Map<String, String> map, Map<String, String> mapKeys)
+          onData) {
     return _database.onValue.listen((event) {
       Map<String, String> map = {};
       Map<String, String> mapKeys = {};

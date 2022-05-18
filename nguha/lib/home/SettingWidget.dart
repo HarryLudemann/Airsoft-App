@@ -8,6 +8,8 @@ import 'package:Nguha/home/Settings/SettingsAccount.dart';
 import 'package:Nguha/home/Settings/SettingsThemes.dart';
 import 'package:Nguha/home/Settings/SettingsLanguage.dart';
 
+import '../auth/login.dart';
+
 // data class of settings contains name, icon and widget
 class SettingsData {
   String name;
@@ -116,6 +118,15 @@ Widget SettingWidget(context) {
                 );
               },
               childCount: _settings.length, // 1000 list items
+            ),
+          ),
+          // silver padding
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate(
+                [GoogleSignIn()],
+              ),
             ),
           ),
         ],

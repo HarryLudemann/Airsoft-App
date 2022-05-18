@@ -1,19 +1,12 @@
 import 'package:Nguha/games/snd/SettingWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:page_transition/page_transition.dart';
 import 'package:Nguha/util/settings/preference_model.dart';
 import 'package:Nguha/util/firebase/add_user.dart';
 import 'package:Nguha/util/firebase/random_game_code.dart';
 import 'package:Nguha/util/firebase/delete_game.dart';
 import 'package:Nguha/util/languages.dart';
-import 'package:Nguha/util/firebase/is_host_bomb.dart';
-import 'package:Nguha/util/firebase/upload_game_info.dart';
-import 'package:Nguha/games/snd/SelectBombsPage.dart';
-import 'package:Nguha/games/snd/PassiveHostPage.dart';
-import 'package:Nguha/games/snd/WaitingPage.dart';
-
-import '../games/snd/GamePage.dart';
+import 'package:Nguha/util/internet.dart';
 
 class SettingPage extends StatefulWidget {
   String name = "";
@@ -51,16 +44,25 @@ class _SettingPageState extends State<SettingPage> {
   @override
   void initState() {
     super.initState();
-    // get random game code then add user
-    getRandomGameCode().then((code) {
-      addUser(widget.name, code).then((code) {
-        setState(() {
-          userCode = code;
+    checkConnectivityState().then((bool hasInternet) {
+      if (hasInternet) {
+        getRandomGameCode().then((gamecode) {
+          addUser(widget.name, gamecode, team: "#1 Bomb").then((code) {
+            setState(() {
+              userCode = code;
+            });
+          });
+          setState(() {
+            gameCode = gamecode;
+          });
         });
-      });
-      setState(() {
-        gameCode = code;
-      });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No internet connection available'),
+          ),
+        );
+      }
     });
   }
 

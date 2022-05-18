@@ -1,3 +1,4 @@
+import 'package:Nguha/util/internet.dart';
 import 'package:flutter/material.dart';
 import 'package:Nguha/util/languages.dart';
 
@@ -19,7 +20,16 @@ Widget HomeWidget(context) {
               minimumSize: const Size.fromHeight(80), // NEW
             ),
             onPressed: () {
-              Navigator.pushNamed(context, '/JoinGame');
+              checkConnectivityState().then((hasInternet) => {
+                    if (hasInternet)
+                      Navigator.pushNamed(context, '/JoinGame')
+                    else
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('No internet connection available'),
+                        ),
+                      )
+                  });
             },
             child: Text(
               translate('Join', themeNotifier.language),

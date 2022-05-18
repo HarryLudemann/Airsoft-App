@@ -29,6 +29,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.light,
+    ));
     SystemChrome.setEnabledSystemUIOverlays([]); // hide ui elements
     return ChangeNotifierProvider(
       create: (_) => PreferenceModel(),

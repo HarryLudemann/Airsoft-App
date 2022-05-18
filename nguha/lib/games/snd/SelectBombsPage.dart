@@ -1,4 +1,8 @@
 import 'dart:async';
+import 'package:Nguha/util/firebase/change_user_team.dart';
+import 'package:Nguha/util/firebase/randomize_team.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:Nguha/util/settings/preference_model.dart';
@@ -6,8 +10,10 @@ import 'package:Nguha/util/languages.dart';
 import 'package:Nguha/util/firebase/listener.dart';
 
 class SndSelectPage extends StatefulWidget {
-  String code = "";
-  SndSelectPage({Key? key, required String code}) : super(key: key) {
+  String code;
+  String userCode = "";
+  SndSelectPage({Key? key, required this.code, required this.userCode})
+      : super(key: key) {
     this.code = code;
   }
 
@@ -16,13 +22,15 @@ class SndSelectPage extends StatefulWidget {
 }
 
 class _SndSelectPageState extends State<SndSelectPage> {
-  StreamSubscription? _onUsersChanged;
+  bool bombOneSet = true;
+  // StreamSubscription? _onUsersChanged;
 
-  // dropdown options list
+  // // dropdown options list
   final List<DropdownMenuItem<String>> _options = <String>[
-    '-',
     '#1 Bomb',
     '#2 Bomb',
+    'Red',
+    'Blue',
   ].map((String value) {
     return DropdownMenuItem<String>(
       value: value,
@@ -30,114 +38,88 @@ class _SndSelectPageState extends State<SndSelectPage> {
     );
   }).toList();
 
-  // return true if available and false if not
-  bool checkAvailableTag(String tag) {
-    for (String team in _players.values) {
-      if (team == tag) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // widget for each player given name, a list item with dropdown on right with two team colors and 1-3
-  Widget _buildPlayerRow(String name, String index, String? nameCode) {
-    // return container of row with name and dropdown with blue, red, 1, 2, 3
+  Widget _buildPlayerRow(String name, String team, String _userCode) {
+    // Inline list tile
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Text(
-            name,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      padding: const EdgeInsets.only(right: 8.0, left: 8.0),
+      height: 60,
+      child: Card(
+        // color blue if team blue, else if red set red else must be bomb
+        color: team == 'Blue'
+            ? Colors.blue
+            : team == 'Red'
+                ? Colors.red
+                : Colors.orange,
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+            side: BorderSide(
+                color: team == "Blue" ? Colors.blue : Colors.red, width: 0.5),
+            borderRadius: BorderRadius.circular(5)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(
+                name,
+                style: TextStyle(
+                    color: _userCode == widget.userCode
+                        ? Colors.white
+                        : Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          Theme(
-            data: Theme.of(context)
-                .copyWith(canvasColor: Theme.of(context).primaryColor),
-            child: DropdownButton<String>(
-              underline: Container(),
-              value: index,
-              items: _options,
-              onChanged: (newValue) {
-                if (newValue != null) {
-                  if (checkAvailableTag(newValue)) {
-                    setState(() {
-                      _updatePlayer(name, newValue, nameCode);
-                    });
-                  }
-                  // if not available does nothin - could set this and unset other?
-                }
-              },
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                    canvasColor: team == 'Blue'
+                        ? Colors.blue
+                        : team == 'Red'
+                            ? Colors.red
+                            : Colors.orange),
+                child: DropdownButton<String>(
+                  icon: Icon(
+                    Icons.arrow_drop_down,
+                    color: _userCode == widget.userCode
+                        ? Colors.black
+                        : Colors.white,
+                  ),
+                  underline: Container(),
+                  value: team,
+                  items: _options,
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      // if team is "#1 Bomb" set bombOneSet to false
+                      if (team == '#1 Bomb') {
+                        setState(() {
+                          bombOneSet = false;
+                        });
+                      } else if (newValue == '#1 Bomb') {
+                        setState(() {
+                          bombOneSet = true;
+                        });
+                      }
+                      setUserTeam(_userCode, widget.code, newValue);
+                      // if not available does nothin - could set this and unset other?
+                    }
+                  },
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Map<String, String> _playersKeys = {};
-
-  Map<String, String> _players = {};
-
-  void _updatePlayer(String name, String value, String? nameCode) {
-    if (nameCode == null) {
-      return;
-    }
-
-    DatabaseListener _teamListener =
-        DatabaseListener("games/" + widget.code + "/users/" + nameCode);
-    _teamListener.update({'team': value});
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _activateListeners();
-  }
-
-  @override
-  void deactivate() {
-    _deactivateListeners();
-    super.deactivate();
-  }
-
-  void _deactivateListeners() {
-    super.deactivate();
-    if (_onUsersChanged != null) {
-      _onUsersChanged!.cancel();
-      _onUsersChanged = null;
-    }
-  }
-
-  void _activateListeners() {
-    DatabaseListener usersListener =
-        DatabaseListener("games/" + widget.code + "/users/");
-
-    // Stream<DatabaseEvent> stream = databaseref.onValue;
-
-    _onUsersChanged = usersListener.listenTwoChildList(
-        (Map<String, String> map, Map<String, String> mapKeys) {
-      // iterate over event.snapshot.children
-      setState(() {
-        _playersKeys = mapKeys;
-        _players = map;
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor = const Color.fromARGB(255, 32, 32, 32);
-
     return Consumer<PreferenceModel>(
         builder: (context, PreferenceModel themeNotifier, child) {
       return Scaffold(
-        backgroundColor: backgroundColor,
+        backgroundColor: themeNotifier.backgroundColor,
         body: CustomScrollView(
           primary: false,
           slivers: <Widget>[
@@ -148,44 +130,79 @@ class _SndSelectPageState extends State<SndSelectPage> {
                   [
                     Text(
                       translate('Select Teams/Bombs', themeNotifier.language),
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white),
+                          color: themeNotifier.fontcolor),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // firebase animated list within silver
+
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate(
+                  [
+                    SizedBox(
+                      height: (MediaQuery.of(context).size.height * 0.8) - 160,
+                      child: FirebaseAnimatedList(
+                        query: FirebaseDatabase.instance
+                            .ref()
+                            .child("games")
+                            .child(widget.code)
+                            .child("users")
+                            .orderByChild("team"),
+                        itemBuilder: (BuildContext context,
+                            DataSnapshot snapshot,
+                            Animation<double> animation,
+                            int index) {
+                          return _buildPlayerRow(
+                              snapshot.child('name').value.toString(),
+                              snapshot.child('team').value.toString(),
+                              snapshot.key.toString());
+                        },
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
 
-            // for each item in _players, build row
-            ..._players.entries.map((entry) {
-              return SliverList(
-                delegate: SliverChildListDelegate(
-                  [
-                    _buildPlayerRow(
-                      entry.key,
-                      entry.value,
-                      _playersKeys[entry.key],
-                    ),
-                  ],
-                ),
-              );
-            }),
-
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
               sliver: SliverList(
                 delegate: SliverChildListDelegate(
                   [
-                    // elevated button min height 70, takes full width
+                    SizedBox(
+                        height: 80,
+                        child: Center(
+                          child: IconButton(
+                            iconSize: 46,
+                            icon: Icon(Icons.refresh,
+                                color: themeNotifier.fontcolor),
+                            onPressed: () {
+                              randomize_team(widget.code);
+                            },
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+            ),
+
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate(
+                  [
                     SizedBox(
                       height: 80,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           primary: Theme.of(context).primaryColor,
-                          // borderRadius: BorderRadius.circular(10),
-                          // borderSide: BorderSide(color: Colors.white),
                         ),
                         child: Text(
                           translate('Back', themeNotifier.language),
@@ -196,51 +213,38 @@ class _SndSelectPageState extends State<SndSelectPage> {
                           ),
                         ),
                         onPressed: () {
-                          // if both bombs are available show dialog that atleast one bomb must be set
-                          if (checkAvailableTag("#1 Bomb") &&
-                              checkAvailableTag("#2 Bomb")) {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text(
-                                    translate(
-                                        'Select Bomb', themeNotifier.language),
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  content: Text(
-                                    translate('Atleast one bomb must be set',
-                                        themeNotifier.language),
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  actions: <Widget>[
-                                    FlatButton(
-                                      child: Text(
-                                        translate('Ok', themeNotifier.language),
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          } else {
+                          if (bombOneSet) {
                             Navigator.of(context).pop();
+                          } else {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text(
+                                      translate('Bomb One Must Be Set',
+                                          themeNotifier.language),
+                                      style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black),
+                                    ),
+                                    actions: <Widget>[
+                                      FlatButton(
+                                        child: Text(
+                                          translate(
+                                              'OK', themeNotifier.language),
+                                          style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                });
                           }
                         },
                       ),

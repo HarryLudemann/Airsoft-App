@@ -55,12 +55,12 @@ class _JoinPageState extends State<JoinPage> {
                   height: MediaQuery.of(context).size.height * 0.625,
                   child: GridView.count(
                     primary: false,
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                     crossAxisCount: 3,
                     children: <Widget>[
-                      for (int i = 0; i < 9; i++)
+                      for (int i = 1; i <= 9; i++)
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             primary: Theme.of(context).primaryColor,
@@ -82,9 +82,9 @@ class _JoinPageState extends State<JoinPage> {
                         style: ElevatedButton.styleFrom(
                           primary: Theme.of(context).primaryColor,
                         ),
-                        child: const Text("9", style: TextStyle(fontSize: 36)),
+                        child: const Text("0", style: TextStyle(fontSize: 36)),
                         onPressed: () {
-                          _addToCode("9");
+                          _addToCode("0");
                         },
                       ),
                       ElevatedButton(

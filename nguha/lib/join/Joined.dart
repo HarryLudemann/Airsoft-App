@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:Nguha/util/firebase/get_game_info.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:Nguha/util/languages.dart';
@@ -8,15 +11,7 @@ import 'package:Nguha/util/firebase/add_user.dart';
 import 'package:Nguha/util/firebase/remove_user.dart';
 import 'package:Nguha/util/firebase/listener.dart';
 import 'package:Nguha/util/gamestate.dart';
-
-import '../util/firebase/get_snd_info.dart';
-
-class User {
-  int id;
-  String name;
-  String team;
-  User(this.id, this.name, this.team);
-}
+import 'package:Nguha/util/firebase/get_users.dart';
 
 class JoinedPage extends StatefulWidget {
   String code = "";
@@ -46,21 +41,13 @@ class _JoinedPageState extends State<JoinedPage> {
   String userCode = "";
   int game_state = 0;
   bool muted = false;
-
-  List<User> redTeam = [
-    User(0, "User23525", "Red"),
-    User(0, "User23525", "Red"),
-  ];
-
-  List<User> blueTeam = [
-    User(0, "Hazzah", "Blue"),
-    User(0, "Hazzah", "Blue"),
-  ];
+  // GameUsers gameUsers = GameUsers("");
 
   @override
   void initState() {
     super.initState();
     addUser(widget.name, widget.code);
+    // gameUsers = GameUsers(widget.code);
     _activateListeners();
   }
 
@@ -71,16 +58,9 @@ class _JoinedPageState extends State<JoinedPage> {
     super.deactivate();
   }
 
-  void _addUserToTeam(User user, String teamName) {
-    if (teamName == "Red") {
-      redTeam.add(user);
-    } else if (teamName == "Blue") {
-      blueTeam.add(user);
-    }
-  }
-
   void _deactivateListeners() {
     super.deactivate();
+    // gameUsers.deactivate();
     if (_onGameStateChanged != null) {
       _onGameStateChanged!.cancel();
       _onGameStateChanged = null;
@@ -92,6 +72,7 @@ class _JoinedPageState extends State<JoinedPage> {
   }
 
   void _activateListeners() {
+    // gameUsers.listen();
     DatabaseListener gameStateListener =
         DatabaseListener("games/" + widget.code + "/game_state");
 
@@ -99,7 +80,6 @@ class _JoinedPageState extends State<JoinedPage> {
         DatabaseListener("games/" + widget.code + "/info/startGame");
 
     _onGameStateChanged = gameStateListener.listenString((String event) {
-      //if event not null
       if (event != "null") {
         setState(() {
           game_state = int.parse(event);
@@ -108,12 +88,7 @@ class _JoinedPageState extends State<JoinedPage> {
     });
 
     _onInfoChanged = startGameListener.listenBool((bool event) {
-      // if event.snapshot.value == true get info and pass to gamepage
       if (event == true) {
-        // get user team from firebase
-        // databaseref = FirebaseDatabase.instance
-        //     .ref("games/" + widget.code + "/users/" + userCode + "/team");
-        // if team is #1 Bomb or #2 Bomb or #3 Bomb
         DatabaseListener(
                 "games/" + widget.code + "/users/" + userCode + "/team")
             .getOnceString()
@@ -128,10 +103,26 @@ class _JoinedPageState extends State<JoinedPage> {
 
             int varsReceived = 0;
 
-            void _incrementVars() {
-              varsReceived++;
-              if (varsReceived != 6) {
-                return;
+            getGameInfo(widget.code).then((Map<String, Object> info) {
+              if (info.containsKey("bombExplosionSec")) {
+                bombExplosionSec =
+                    double.parse(info["bombExplosionSec"].toString());
+              }
+              if (info.containsKey("cardsRemember")) {
+                cardsRemember = double.parse(info["cardsRemember"].toString());
+              }
+              if (info.containsKey("passcodeAttempts")) {
+                passcodeAttempts =
+                    double.parse(info["passcodeAttempts"].toString());
+              }
+              if (info.containsKey("passcodeChanges")) {
+                passcodeChanges = info["passcodeChanges"] as bool;
+              }
+              if (info.containsKey("soundOn")) {
+                soundOn = info["soundOn"] as bool;
+              }
+              if (info.containsKey("waitSeconds")) {
+                waitSeconds = double.parse(["waitSeconds"].toString());
               }
               Navigator.push(
                 context,
@@ -148,56 +139,6 @@ class _JoinedPageState extends State<JoinedPage> {
                       widget.themeNotifier),
                 ),
               );
-            }
-
-            DatabaseListener("games/" + widget.code + "/info/bombExplosionSec")
-                .getOnceString()
-                .then((String _bombExplosionSec) {
-              bombExplosionSec = double.parse(_bombExplosionSec);
-              _incrementVars();
-            });
-
-            // set values from firebase info
-            DatabaseListener("games/" + widget.code + "/info/bombExplosionSec")
-                .getOnceString()
-                .then((String _bombExplosionSec) {
-              bombExplosionSec = double.parse(_bombExplosionSec);
-              _incrementVars();
-            });
-
-            DatabaseListener("games/" + widget.code + "/info/cardsRemember")
-                .getOnceString()
-                .then((String _cardsRemember) {
-              cardsRemember = double.parse(_cardsRemember);
-              _incrementVars();
-            });
-
-            DatabaseListener("games/" + widget.code + "/info/passcodeAttempts")
-                .getOnceString()
-                .then((String _passcodeAttempts) {
-              passcodeAttempts = double.parse(_passcodeAttempts);
-              _incrementVars();
-            });
-
-            DatabaseListener("games/" + widget.code + "/info/passcodeChanges")
-                .getOnceBool()
-                .then((bool _passcodeChanges) {
-              passcodeChanges = _passcodeChanges;
-              _incrementVars();
-            });
-
-            DatabaseListener("games/" + widget.code + "/info/soundOn")
-                .getOnceBool()
-                .then((bool _soundOn) {
-              soundOn = _soundOn;
-              _incrementVars();
-            });
-
-            DatabaseListener("games/" + widget.code + "/info/waitSeconds")
-                .getOnceString()
-                .then((String _waitSeconds) {
-              waitSeconds = double.parse(_waitSeconds);
-              _incrementVars();
             });
           }
         });
@@ -205,7 +146,7 @@ class _JoinedPageState extends State<JoinedPage> {
     });
   }
 
-  Widget _userListTile(String name, String team) {
+  Widget _userListTile(String name, String team, String _userCode) {
     // Inline list tile
     return Container(
       padding: const EdgeInsets.only(right: 8.0, left: 8.0),
@@ -223,8 +164,8 @@ class _JoinedPageState extends State<JoinedPage> {
             padding: const EdgeInsets.only(left: 8.0),
             child: Text(
               name,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: _userCode == userCode ? Colors.white : Colors.black,
                   fontSize: 20,
                   fontWeight: FontWeight.bold),
             ),
@@ -257,26 +198,44 @@ class _JoinedPageState extends State<JoinedPage> {
               ),
               // Show red team
               Expanded(
-                child: ListView.builder(
-                  itemCount: redTeam.length,
-                  itemBuilder: (BuildContext context, int index) {
+                child: FirebaseAnimatedList(
+                  reverse: true,
+                  query: FirebaseDatabase.instance
+                      .ref()
+                      .child("games")
+                      .child(widget.code)
+                      .child("users")
+                      .orderByChild("team")
+                      .equalTo("Red"),
+                  itemBuilder: (BuildContext context, DataSnapshot snapshot,
+                      Animation<double> animation, int index) {
                     return _userListTile(
-                        redTeam[index].name, redTeam[index].team);
+                        snapshot.child('name').value.toString(),
+                        snapshot.child('team').value.toString(),
+                        snapshot.key.toString());
+                  },
+                ),
+              ),
+              Expanded(
+                child: FirebaseAnimatedList(
+                  query: FirebaseDatabase.instance
+                      .ref()
+                      .child("games")
+                      .child(widget.code)
+                      .child("users")
+                      .orderByChild("team")
+                      .equalTo("Blue"),
+                  itemBuilder: (BuildContext context, DataSnapshot snapshot,
+                      Animation<double> animation, int index) {
+                    return _userListTile(
+                        snapshot.child('name').value.toString(),
+                        snapshot.child('team').value.toString(),
+                        snapshot.key.toString());
                   },
                 ),
               ),
               const SizedBox(
                 height: 15.0,
-              ),
-              // show blue team
-              Expanded(
-                child: ListView.builder(
-                  itemCount: blueTeam.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return _userListTile(
-                        blueTeam[index].name, blueTeam[index].team);
-                  },
-                ),
               ),
               IconButton(
                 iconSize: 48,
